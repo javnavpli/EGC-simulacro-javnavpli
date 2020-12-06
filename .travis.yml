@@ -19,3 +19,26 @@ script:
   - coverage run --branch --source=. ./manage.py test --keepdb --with-xunit
   - coverage xml
   - python-codacy-coverage -r coverage.xml
+notifications:
+  email:
+    recipients:
+      - edubotdom@alum.us.es
+      - danaremar@alum.us.es
+      - juanogtir@alum.us.es
+      - javvazzam@alum.us.es
+      - jossanrui5@alum.us.es
+      - alesansaa@alum.us.es
+      - alfgonfer@alum.us.es
+      - antrosbar@alum.us.es
+      - antsuabon@alum.us.es
+      - fragonlug@alum.us.es
+      - javnavpli@alum.us.es
+      - javsolgar@alum.us.es
+      - jesgamlar@alum.us.es
+      - julsoutos@alum.us.es
+      - marlasesc@alum.us.es
+      - rafsalcas1@alum.us.es
+      - pabrodgar9@alum.us.es
+      - julgomrod@alum.us.es
+    on_success: always # default: change
+    on_failure: always # default: always
