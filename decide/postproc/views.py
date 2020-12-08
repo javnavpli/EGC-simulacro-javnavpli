@@ -18,7 +18,7 @@ class PostProcView(APIView):
 
     def post(self, request):
         """
-         * type: IDENTITY | EQUALITY | WEIGHT
+         * type: IDENTITY | DHONT
          * options: [
             {
              option: str,
@@ -27,12 +27,17 @@ class PostProcView(APIView):
              ...extraparams
             }
            ]
+	 * seats: int
         """
 
-        t = request.data.get('type', 'IDENTITY')
+        t = request.data.get('type')
         opts = request.data.get('options', [])
+	s = request.data.get('seats')
 
         if t == 'IDENTITY':
             return self.identity(opts)
+
+	elif t == 'DHONT':
+	    return self.dhont(opts,s)
 
         return Response({})
