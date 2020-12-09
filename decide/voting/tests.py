@@ -13,7 +13,7 @@ from census.models import Census
 from mixnet.mixcrypt import ElGamal
 from mixnet.mixcrypt import MixCrypt
 from mixnet.models import Auth
-from voting.models import Voting, Question, QuestionOption
+from voting.models import Voting, Question, QuestionOption, QuestionOrder
 
 
 class VotingTestCase(BaseTestCase):
@@ -47,6 +47,22 @@ class VotingTestCase(BaseTestCase):
 
         return v
 
+    def create_order_voting(self):
+        q = Question(desc='test ordering question')
+        q.save()
+        for i in range(5):
+            opt = QuestionOrder(question=q, option='ordering option {}'.format(i+1), order_number='{}'.format(i+1))
+            opt.save()
+        v = Voting(name='test ordering voting', question=q)
+        v.save()
+
+        a, _ = Auth.objects.get_or_create(url=settings.BASEURL,
+                                          defaults={'me': True, 'name': 'test auth'})
+        a.save()
+        v.auths.add(a)
+
+        return v
+
     def create_voters(self, v):
         for i in range(100):
             u, _ = User.objects.get_or_create(username='testvoter{}'.format(i))
@@ -61,6 +77,19 @@ class VotingTestCase(BaseTestCase):
         user.set_password('qwerty')
         user.save()
         return user
+
+    def test_voting_toString(self):
+        v = self.create_voting()
+        self.assertEquals(str(v), "test voting")
+        self.assertEquals(str(v.question), "test question")
+        self.assertEquals(str(v.question.options.all()[0]), "option 1 (2)")
+
+    def test_update_voting_400(self):
+        v = self.create_voting()
+        data = {} #El campo action es requerido en la request
+        self.login()
+        response = self.client.put('/voting/{}/'.format(v.pk), data, format= 'json')
+        self.assertEquals(response.status_code, 400)
 
     def store_votes(self, v):
         voters = list(Census.objects.filter(voting_id=v.id))
@@ -125,7 +154,26 @@ class VotingTestCase(BaseTestCase):
             'name': 'Example',
             'desc': 'Description example',
             'question': 'I want a ',
-            'question_opt': ['cat', 'dog', 'horse']
+            'question_opt': ['cat', 'dog', 'horse'],
+            'question_ord': []
+        }
+
+        response = self.client.post('/voting/', data, format='json')
+        self.assertEqual(response.status_code, 201)
+
+    def test_create_ordering_voting_from_api(self):
+        data = {'name': 'Example'}
+
+        self.login()
+        response = mods.post('voting', params=data, response=True)
+        self.assertEqual(response.status_code, 400)
+
+        data = {
+            'name': 'Example',
+            'desc': 'Description example',
+            'question': 'I want a ',
+            'question_opt': [],
+            'question_ord': ['cat', 'dog', 'horse']
         }
 
         response = self.client.post('/voting/', data, format='json')
