@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.utils import timezone
 
+from .models import QuestionOrder
 from .models import QuestionOption
 from .models import Question
 from .models import Voting
@@ -30,9 +31,12 @@ def tally(ModelAdmin, request, queryset):
 class QuestionOptionInline(admin.TabularInline):
     model = QuestionOption
 
+class QuestionOrderInline(admin.TabularInline):
+    model = QuestionOrder
 
 class QuestionAdmin(admin.ModelAdmin):
-    inlines = [QuestionOptionInline]
+    inlines = [QuestionOptionInline, QuestionOrderInline]
+    
 
 
 class VotingAdmin(admin.ModelAdmin):
