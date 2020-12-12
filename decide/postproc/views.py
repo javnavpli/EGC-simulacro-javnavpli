@@ -57,6 +57,9 @@ class PostProcView(APIView):
         opts = request.data.get('options', [])
         s = request.data.get('seats')
 
+        if len(opts) == 0:
+            return Response({}, status=status.HTTP_400_BAD_REQUEST)
+
         if t == 'IDENTITY':
             return self.identity(opts)
 
