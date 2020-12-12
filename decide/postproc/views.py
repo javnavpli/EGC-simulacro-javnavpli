@@ -22,20 +22,20 @@ class PostProcView(APIView):
         for opt in options:
             out.append({
                 **opt,
-                'postproc': opt['votes'],
+                'postproc': 0,
             });
 
         asientos = 0
-        while asientos <= seats:
+        while asientos < seats:
             cocientes = []
             for i in range(len(out)):
-                cocientes.append(out[i]['votes'] / out[i]['postproc'] + 1)
+                cocientes.append(out[i]['votes'] / (out[i]['postproc'] + 1))
 
-                ganador = cocientes.index(max(cocientes))
-                out[ganador]['postproc'] = out[ganador]['postproc'] + 1
-                asientos += 1
+            ganador = cocientes.index(max(cocientes))
+            out[ganador]['postproc'] = out[ganador]['postproc'] + 1
+            asientos += 1
 
-        out.sort(key=lambda x: -x['postproc'])
+        out.sort(key=lambda x: -x['votes'])
         return Response(out)
 
     def post(self, request):
