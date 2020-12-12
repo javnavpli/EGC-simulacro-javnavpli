@@ -64,7 +64,10 @@ class PostProcView(APIView):
             return self.identity(opts)
 
         elif t == 'DHONT':
-            return self.dhont(opts, s)
+            if(s==None):
+                return Response({}, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                return self.dhont(opts, s)
         else:
             return Response({}, status=status.HTTP_400_BAD_REQUEST)
 

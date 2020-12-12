@@ -144,3 +144,22 @@ class PostProcTestCase(APITestCase):
 
         values = response.json()
         self.assertEqual(values, expected_result)
+    
+     # Test en el que no se le pasa la variable seats en el json data
+    def test_no_seats(self):
+        data = {
+            'type': 'DHONT',
+            'options': [
+                {'option': 'Option 1', 'number': 1, 'votes': 18},
+                {'option': 'Option 2', 'number': 2, 'votes': 3},
+                {'option': 'Option 3', 'number': 3, 'votes': 6},
+
+            ]
+        }
+        expected_result = {}
+
+        response = self.client.post('/postproc/', data, format='json')
+        self.assertEqual(response.status_code, 400)
+
+        values = response.json()
+        self.assertEqual(values, expected_result)
