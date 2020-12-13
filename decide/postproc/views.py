@@ -34,5 +34,6 @@ class PostProcView(APIView):
 
         if t == 'IDENTITY':
             return self.identity(opts)
-
+        elif t == 'RELATIVA':
+            return self.relativa(opts)
         return Response({})
