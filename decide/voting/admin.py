@@ -36,7 +36,7 @@ class QuestionOrderInline(admin.TabularInline):
 
 class QuestionAdmin(admin.ModelAdmin):
     inlines = [QuestionOptionInline, QuestionOrderInline]
- 
+
 class VotingAdmin(admin.ModelAdmin):
     list_display = ('name', 'start_date', 'end_date')
     readonly_fields = ('start_date', 'end_date', 'pub_key',
