@@ -17,6 +17,43 @@ class PostProcView(APIView):
         out.sort(key=lambda x: -x['postproc'])
         return Response(out)
 
+    def relativa(self, options):
+        out= []
+        numvotos=0
+
+        for opt in options:
+            numvotos=opt['votes']+numvotos
+            out.append({
+                **opt,
+                'postproc':0,
+            })
+
+        mayor=0.0
+        while len(out)>=2:
+
+            if len(out)>2:
+                cocientes = []
+                for i in range(len(out)):
+                   cocientes.append(out[i]['votes']/numvotos)       
+                perdedor=cocientes.index(min(cocientes))
+                ganador=cocientes.index(max(cocientes))
+                mayor=cocientes[ganador]
+                if mayor>0.5:
+                    out[ganador]['postproc']= 1
+                    break
+                numvotos= numvotos - cocientes[perdedor]
+                del out[perdedor]
+            elif len(out)==2:
+                cocientes = []
+                for i in range(len(out)):
+                    cocientes.append(out[i]['votes']/numvotos)
+                ganador=cocientes.index(max(cocientes))  
+                out[ganador]['postproc']= 1
+                break
+
+        out.sort(key=lambda x:-x['votes'])
+        return Response(out)
+
     def dhont(self, options, seats):
         out = []
 
@@ -41,7 +78,7 @@ class PostProcView(APIView):
 
     def post(self, request):
         """
-         * type: IDENTITY | DHONT
+         * type: IDENTITY | DHONT | RELATIVA
          * options: [
             {
              option: str,
@@ -62,7 +99,8 @@ class PostProcView(APIView):
 
         if t == 'IDENTITY':
             return self.identity(opts)
-
+        elif t == 'RELATIVA':
+            return self.relativa(opts)
         elif t == 'DHONT':
             if(s==None):
                 return Response({}, status=status.HTTP_400_BAD_REQUEST)
@@ -70,5 +108,4 @@ class PostProcView(APIView):
                 return self.dhont(opts, s)
         else:
             return Response({}, status=status.HTTP_400_BAD_REQUEST)
-
         return Response({})

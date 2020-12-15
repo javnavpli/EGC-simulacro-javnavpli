@@ -86,7 +86,6 @@ class PostProcTestCase(APITestCase):
                 {'option': 'Option 5', 'number': 5, 'votes': 10},
                 {'option': 'Option 6', 'number': 6, 'votes': 2},
                 {'option': 'Option 7', 'number': 7, 'votes': 6},
-
             ]
         }
 
@@ -127,6 +126,93 @@ class PostProcTestCase(APITestCase):
         response = self.client.post('/postproc/', data, format='json')
         self.assertEqual(response.status_code, 400)
 
+        values = response.json()
+        self.assertEqual(values, expected_result)
+
+    def test_relativa1(self):
+        data = {
+            'type': 'RELATIVA',
+            'options': [
+                { 'option': 'Option 1', 'number': 1, 'votes': 7 },
+                { 'option': 'Option 2', 'number': 2, 'votes': 4 },
+                { 'option': 'Option 3', 'number': 3, 'votes': 6 },
+            ]
+        }
+
+        expected_result = [
+            { 'option': 'Option 1', 'number': 1, 'votes': 7, 'postproc': 1 },
+            { 'option': 'Option 3', 'number': 3, 'votes': 6, 'postproc': 0 },
+        ]
+
+        response = self.client.post('/postproc/', data, format='json')
+        self.assertEqual(response.status_code, 200)
+
+        values = response.json()
+        self.assertEqual(values, expected_result)
+              
+    def test_relativa2(self):
+        data = {
+            'type': 'RELATIVA',
+            'options': [
+                { 'option': 'Option 1', 'number': 1, 'votes': 2 },
+                { 'option': 'Option 2', 'number': 2, 'votes': 8 },
+            ]
+        }
+
+        expected_result = [
+            { 'option': 'Option 2', 'number': 2, 'votes': 8, 'postproc': 1 },
+            { 'option': 'Option 1', 'number': 1, 'votes': 2, 'postproc': 0 },
+        ]
+
+        response = self.client.post('/postproc/', data, format='json')
+        self.assertEqual(response.status_code, 200)
+        values = response.json()
+        self.assertEqual(values, expected_result)
+              
+    def test_relativa3(self):
+        data = {
+            'type': 'RELATIVA',
+            'options': [
+                { 'option': 'Option 1', 'number': 1, 'votes': 1 },
+                { 'option': 'Option 2', 'number': 2, 'votes': 2 },
+                { 'option': 'Option 3', 'number': 3, 'votes': 3 },
+                { 'option': 'Option 4', 'number': 4, 'votes': 4 },
+            ]
+        }
+
+        expected_result = [
+            { 'option': 'Option 4', 'number': 4, 'votes': 4, 'postproc': 1 },
+            { 'option': 'Option 3', 'number': 3, 'votes': 3, 'postproc': 0 },
+        ]
+
+        response = self.client.post('/postproc/', data, format='json')
+        self.assertEqual(response.status_code, 200)
+
+        values = response.json()
+        self.assertEqual(values, expected_result)
+
+    def test_relativa4(self):
+        data = {
+            'type': 'RELATIVA',
+            'options': [
+                { 'option': 'Option 1', 'number': 1, 'votes': 0 },
+                { 'option': 'Option 2', 'number': 2, 'votes': 0 },
+                { 'option': 'Option 3', 'number': 3, 'votes': 8 },
+                { 'option': 'Option 4', 'number': 4, 'votes': 2 },
+                { 'option': 'Option 5', 'number': 5, 'votes': 0 },
+            ]
+        }
+
+        expected_result = [
+                { 'option': 'Option 3', 'number': 3, 'votes': 8, 'postproc': 1 },
+                { 'option': 'Option 4', 'number': 4, 'votes': 2, 'postproc': 0 },
+                { 'option': 'Option 1', 'number': 1, 'votes': 0, 'postproc': 0 },
+                { 'option': 'Option 2', 'number': 2, 'votes': 0, 'postproc': 0 },
+                { 'option': 'Option 5', 'number': 5, 'votes': 0, 'postproc': 0 },
+        ]
+
+        response = self.client.post('/postproc/', data, format='json')
+        self.assertEqual(response.status_code, 200)
         values = response.json()
         self.assertEqual(values, expected_result)
 
