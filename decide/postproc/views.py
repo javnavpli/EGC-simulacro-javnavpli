@@ -19,28 +19,35 @@ class PostProcView(APIView):
     def relativa(self, options):
         out= []
         numvotos=0
+
         for opt in options:
             numvotos=opt['votes']+numvotos
             out.append({
                 **opt,
                 'postproc':0,
             })
+
         mayor=0.0
-        while len(out)>1:
-           
-            if(mayor<=0.5):
+        while len(out)>=2:
+
+            if len(out)>2:
                 cocientes = []
                 for i in range(len(out)):
-                    cocientes.append(out[i]['votes']/numvotos)
-                    
+                   cocientes.append(out[i]['votes']/numvotos)       
                 perdedor=cocientes.index(min(cocientes))
                 ganador=cocientes.index(max(cocientes))
                 mayor=cocientes[ganador]
-                out[ganador]['postproc']= 1
+                
                 numvotos= numvotos - cocientes[perdedor]
                 del out[perdedor]
-            else:
+            elif len(out)==2:
+                cocientes = []
+                for i in range(len(out)):
+                    cocientes.append(out[i]['votes']/numvotos)
+                ganador=cocientes.index(max(cocientes))  
+                out[ganador]['postproc']= 1
                 break
+
         out.sort(key=lambda x:-x['votes'])
         return Response(out)
 
