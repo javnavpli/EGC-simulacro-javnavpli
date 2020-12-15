@@ -166,6 +166,8 @@ class PostProcTestCase(APITestCase):
 
         response = self.client.post('/postproc/', data, format='json')
         self.assertEqual(response.status_code, 200)
+        values = response.json()
+        self.assertEqual(values, expected_result)
               
     def test_relativa3(self):
         data = {
@@ -211,6 +213,8 @@ class PostProcTestCase(APITestCase):
 
         response = self.client.post('/postproc/', data, format='json')
         self.assertEqual(response.status_code, 200)
+        values = response.json()
+        self.assertEqual(values, expected_result)
 
     # Test en el que no se le pasa la variable options en el json data
     def test_no_options(self):
