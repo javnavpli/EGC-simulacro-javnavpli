@@ -37,7 +37,9 @@ class PostProcView(APIView):
                 perdedor=cocientes.index(min(cocientes))
                 ganador=cocientes.index(max(cocientes))
                 mayor=cocientes[ganador]
-                
+                if mayor>0.5:
+                    out[ganador]['postproc']= 1
+                    break
                 numvotos= numvotos - cocientes[perdedor]
                 del out[perdedor]
             elif len(out)==2:
