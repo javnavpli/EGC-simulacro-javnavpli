@@ -37,5 +37,5 @@ DATABASES = {
     }
 }
 
-# number of bits for the key, all auths should use the same number of bits
+# number of bits for the key, all auths should use the same number of bits/CAMBIO
 KEYBITS = 256
