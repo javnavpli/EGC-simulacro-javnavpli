@@ -1,8 +1,12 @@
 from rest_framework import serializers
 
-from .models import Question, QuestionOption, Voting
+from .models import Question, QuestionOption, Voting, QuestionOrder
 from base.serializers import KeySerializer, AuthSerializer
 
+class QuestionOrderSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = QuestionOrder
+        fields = ('order_number','number','option')
 
 class QuestionOptionSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
@@ -12,9 +16,10 @@ class QuestionOptionSerializer(serializers.HyperlinkedModelSerializer):
 
 class QuestionSerializer(serializers.HyperlinkedModelSerializer):
     options = QuestionOptionSerializer(many=True)
+    order_options = QuestionOrderSerializer(many=True)
     class Meta:
         model = Question
-        fields = ('desc', 'options')
+        fields = ('desc', 'options', 'order_options')
 
 
 class VotingSerializer(serializers.HyperlinkedModelSerializer):
