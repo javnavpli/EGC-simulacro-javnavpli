@@ -20,7 +20,7 @@ from .forms import UserForm
 from .models import *
 
 class RegisterForm(TemplateView):
-    template_name = 'authentication/prueba.html'
+    template_name = 'prueba.html'
     def post(request):
         form = UserForm()
 
@@ -29,7 +29,7 @@ class RegisterForm(TemplateView):
         if form.is_valid():
             form.save()
         context = {'form':form}
-        return render(request, 'authentication/prueba.html',context)
+        return render(request, 'prueba.html',context)
 
 
 class GetUserView(APIView):
