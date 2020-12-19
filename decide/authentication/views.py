@@ -26,10 +26,20 @@ class RegisterForm(TemplateView):
 
         if request.method == 'POST':
             form = Userform(request.POST)
-        if form.is_valid():
-            form.save()
+            if form.is_valid():
+                form.save()
+                username = form.cleaned_data['username']
+                messages.sucess(request, 'El usuario {username} fue creado correctamente')
+                #TODO poner redirección a página inicio
+            
         context = {'form':form}
+
         return render(request, 'prueba.html',context)
+
+class Home(TemplateView):
+    template_name = 'index.html'
+    def home(request):
+        return render(request, 'index.html', context_instance=RequestContext(request))
 
 
 class GetUserView(APIView):
