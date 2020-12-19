@@ -13,20 +13,23 @@ from django.core.exceptions import ObjectDoesNotExist
 from django import forms
 from .serializers import UserSerializer
 from django.shortcuts import render
+from django.views.generic import TemplateView
 
 
 from .forms import UserForm
 from .models import *
 
-def RegisterForm(request):
-    form = UserForm()
+class RegisterForm(TemplateView):
+    template_name = 'authentication/prueba.html'
+    def post(request):
+        form = UserForm()
 
-    if request.method == 'POST':
-        form = Userform(request.POST)
+        if request.method == 'POST':
+            form = Userform(request.POST)
         if form.is_valid():
             form.save()
-    context = {'form':form}
-    return render(request, 'prueba/prueba.html',context)
+        context = {'form':form}
+        return render(request, 'authentication/prueba.html',context)
 
 
 class GetUserView(APIView):
