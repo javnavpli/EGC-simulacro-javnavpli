@@ -10,8 +10,23 @@ from django.contrib.auth.models import User
 from django.db import IntegrityError
 from django.shortcuts import get_object_or_404
 from django.core.exceptions import ObjectDoesNotExist
-
+from django import forms
 from .serializers import UserSerializer
+from django.shortcuts import render
+
+
+from .forms import UserForm
+from .models import *
+
+def RegisterForm(request):
+    form = UserForm()
+
+    if request.method == 'POST':
+        form = Userform(request.POST)
+        if form.is_valid():
+            form.save()
+    context = {'form':form}
+    return render(request, 'prueba/prueba.html',context)
 
 
 class GetUserView(APIView):
@@ -53,3 +68,6 @@ class RegisterView(APIView):
         except IntegrityError:
             return Response({}, status=HTTP_400_BAD_REQUEST)
         return Response({'user_pk': user.pk, 'token': token.key}, HTTP_201_CREATED)
+
+
+
