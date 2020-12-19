@@ -65,18 +65,18 @@ class PostProcView(APIView):
                 'postproc':0,
             })
 
-            if len(out)>2:
-                cocientes = []
-                for i in range(len(out)):
-                   cocientes.append(out[i]['votes']/numvotos)
-                ganador=cocientes.index(max(cocientes))
-                mayor=cocientes[ganador]
+        if len(out)>=2:
+            cocientes = []
+            for i in range(len(out)):
+                cocientes.append(out[i]['votes']/numvotos)
+            ganador=cocientes.index(max(cocientes))
+            mayor=cocientes[ganador]
 
-                if mayor>0.5:
-                    out[ganador]['postproc']= 1 
+            if mayor>0.5:
+                out[ganador]['postproc']= 1
+        else:
+            out[0]['postproc']= 1
                 
-            
-
         out.sort(key=lambda x:-x['votes'])
         return Response(out)
 
@@ -104,7 +104,7 @@ class PostProcView(APIView):
 
     def post(self, request):
         """
-         * type: IDENTITY | DHONT | RELATIVA
+         * type: IDENTITY | DHONT | RELATIVA | ABSOLUTA
          * options: [
             {
              option: str,
