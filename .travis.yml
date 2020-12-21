@@ -2,7 +2,9 @@ dist: xenial
 
 services:
   - postgresql
+sudo: required
 addons:
+  chrome: stable
   postgresql: "9.4"
   apt:
     sources:
