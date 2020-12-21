@@ -39,8 +39,6 @@ install:
   
 script:
   - cd decide
-  - sudo 
-  - sudo apt-get
   - sudo apt-get install firefox
   - coverage run --branch --source=. ./manage.py test --keepdb --with-xunit
   - coverage xml
