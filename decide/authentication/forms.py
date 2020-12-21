@@ -6,7 +6,9 @@ from .models import *
 
 
 class UserForm(UserCreationForm):
-    pass
+    class Meta:
+        model = User
+        fields = ['username', 'first_name', 'last_name', 'email', 'password1', 'password2']
 
 class ExtraForm(forms.ModelForm):
     class Meta:

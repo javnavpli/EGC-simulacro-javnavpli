@@ -16,9 +16,10 @@ from django.shortcuts import render
 from django.views.generic import TemplateView
 from django.contrib.auth.forms import UserCreationForm
 from django.template import RequestContext
+from django.contrib import messages
 
 from .forms import UserForm
-from .models import *
+from .models import Extra
 
 def registro(request):
     form = UserForm()
