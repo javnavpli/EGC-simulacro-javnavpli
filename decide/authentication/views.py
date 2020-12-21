@@ -27,22 +27,26 @@ def registro_usuario(request):
     if request.method == 'POST':
         extra_form = ExtraForm(request.POST,"extra_form")
         user_form = UserForm(request.POST,"user_form")
-        if user_form.is_valid():
+        
+        if extra_form.is_valid() and user_form.is_valid():
             username = user_form.cleaned_data["username"]
             user_form.save()
-            #TODO poner redirección a página inicio
-            if extra_form.is_valid():
-                phone = extra_form.cleaned_data["phone"]
-                double_authentication = extra_form.cleaned_data["double_authentication"]
-                user = User.objects.get(username=username)
-                Extra.objects.create(phone=phone, double_authentication=double_authentication,user=user)
+            phone = extra_form.cleaned_data["phone"]
+            double_authentication = extra_form.cleaned_data["double_authentication"]
+            user = User.objects.get(username=username)
+            Extra.objects.create(phone=phone, double_authentication=double_authentication,user=user)
     
     formularios = {
         "user_form":user_form,
         "extra_form":extra_form,
     }       
-    return render(request, 'prueba.html', formularios)
+    return render(request, 'registro.html', formularios)
 
+def login():
+    pass
+
+def logout():
+    pass
 
 class Home(TemplateView):
     template_name = 'index.html'

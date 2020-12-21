@@ -15,5 +15,16 @@ class ExtraForm(forms.ModelForm):
         model = Extra
         fields = ['phone', 'double_authentication']
 
+    def clean_phone(self):
+        #Validación del número de teléfono en el formulario extra_form
+        '''
+        El número telefónico debe de estar compuesto por 9 dígitos
 
+        '''
+        phone = self.cleaned_data['phone']
+        if (not phone.isdigit()) or len(phone)!=9:
+            raise forms.ValidationError('El teléfono debe estar formado por 9 dígitos')
+        return phone
+
+    
 
