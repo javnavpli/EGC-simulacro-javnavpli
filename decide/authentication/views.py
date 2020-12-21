@@ -14,7 +14,8 @@ from django import forms
 from .serializers import UserSerializer
 from django.shortcuts import render
 from django.views.generic import TemplateView
-
+from django.contrib.auth.forms import UserCreationForm
+from django.template import RequestContext
 
 from .forms import UserForm
 from .models import *
@@ -22,19 +23,9 @@ from .models import *
 class RegisterForm(TemplateView):
     template_name = 'prueba.html'
     def post(request):
-        form = UserForm()
-
-        if request.method == 'POST':
-            form = Userform(request.POST)
-            if form.is_valid():
-                form.save()
-                username = form.cleaned_data['username']
-                messages.sucess(request, 'El usuario {username} fue creado correctamente')
+        form = UserCreationForm()
                 #TODO poner redirección a página inicio
-            
-        context = {'form':form}
-
-        return render(request, 'prueba.html',context)
+        return render(request, 'prueba.html',{"form":form})
 
 class Home(TemplateView):
     template_name = 'index.html'

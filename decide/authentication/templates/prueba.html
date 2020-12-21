@@ -1,23 +1,11 @@
-<h1>Prueba</h1>
 
+<h1>Registro de usuario</h1>
+
+{% block content %}
 <form action="" method="post">
-
-<ul>
-
-    <li>
-        <label>Nombre de Usuario:</label>
-        <input type="text" id="username" name="username">
-        
-        <label>Contraseña:</label>
-        <input type="text" id="contraseña" name="contraseña">
-
-        <label>Email:</label>
-        <input type="text" id="email" name="email">
-        
-
-    </li> 
-
-</ul>
-
+{% csrf_token %}
+{{ form.as_p }}
+<button type="submit">Enviar</button>
 
 </form>
+{% endblock %}
