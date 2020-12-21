@@ -12,26 +12,37 @@ from django.shortcuts import get_object_or_404
 from django.core.exceptions import ObjectDoesNotExist
 from django import forms
 from .serializers import UserSerializer
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.views.generic import TemplateView
 from django.contrib.auth.forms import UserCreationForm
 from django.template import RequestContext
 from django.contrib import messages
 
-from .forms import UserForm
+from .forms import UserForm, ExtraForm
 from .models import Extra
 
-def registro(request):
-    form = UserForm()
+def registro_usuario(request):
+    user_form = UserForm()
+    extra_form = ExtraForm()
     if request.method == 'POST':
-        form = UserForm(request.POST)
-        if form.is_valid():
-            form.save()
-            username = form.cleaned_data['username']
-            messages.sucess(request, 'El usuario {username} fue creado correctamente')
+        extra_form = ExtraForm(request.POST,"extra_form")
+        user_form = UserForm(request.POST,"user_form")
+        if user_form.is_valid():
+            username = user_form.cleaned_data["username"]
+            user_form.save()
             #TODO poner redirección a página inicio
-            
-    return render(request, 'prueba.html', {"form":form})
+            if extra_form.is_valid():
+                phone = extra_form.cleaned_data["phone"]
+                double_authentication = extra_form.cleaned_data["double_authentication"]
+                user = User.objects.get(username=username)
+                Extra.objects.create(phone=phone, double_authentication=double_authentication,user=user)
+    
+    formularios = {
+        "user_form":user_form,
+        "extra_form":extra_form,
+    }       
+    return render(request, 'prueba.html', formularios)
+
 
 class Home(TemplateView):
     template_name = 'index.html'
