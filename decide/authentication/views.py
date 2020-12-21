@@ -20,12 +20,17 @@ from django.template import RequestContext
 from .forms import UserForm
 from .models import *
 
-class RegisterForm(TemplateView):
-    template_name = 'prueba.html'
-    def post(request):
-        form = UserCreationForm()
-                #TODO poner redirección a página inicio
-        return render(request, 'prueba.html',{"form":form})
+def registro(request):
+    form = UserForm()
+    if request.method == 'POST':
+        form = UserForm(request.POST)
+        if form.is_valid():
+            form.save()
+            username = form.cleaned_data['username']
+            messages.sucess(request, 'El usuario {username} fue creado correctamente')
+            #TODO poner redirección a página inicio
+            
+    return render(request, 'prueba.html', {"form":form})
 
 class Home(TemplateView):
     template_name = 'index.html'
