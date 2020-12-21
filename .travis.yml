@@ -4,10 +4,22 @@ services:
   - postgresql
 addons:
   postgresql: "9.4"
+  apt:
+    sources:
+      - google-chrome
+      packages:
+        - google-chrome-stable
 before_script:
   - psql -U postgres -c "create user decide password 'decide'"
   - psql -U postgres -c "create database test_decide owner decide"
   - psql -U postgres -c "ALTER USER decide CREATEDB"
+  - wget "https://github.com/mozilla/geckodriver/releases/download/v0.24.0/geckodriver-v0.24.0-linux64.tar.gz"
+  - tar xfz geckodriver-v0.24.0-linux64.tar.gz
+  - sudo mv geckodriver /usr/local/bin
+  - 'export DISPLAY=:99.0'
+  - Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
+  - sleep 3
+  
 language: python
 python:
   - "3.6"
@@ -20,9 +32,7 @@ script:
   - cd decide
   - sudo 
   - sudo apt-get
-  - sudo cp geckodriver /usr/bin/
   - sudo apt-get install firefox
-  - sudo apt install chromium-browser chromium-chromedriver
   - coverage run --branch --source=. ./manage.py test --keepdb --with-xunit
   - coverage xml
   - python-codacy-coverage -r coverage.xml
