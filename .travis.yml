@@ -4,6 +4,7 @@ services:
   - postgresql
 sudo: required
 addons:
+  chrome: stable
   postgresql: "9.4"
 before_script:
   - psql -U postgres -c "create user decide password 'decide'"
@@ -14,7 +15,6 @@ before_script:
   - sudo mv geckodriver /usr/local/bin
   - 'export DISPLAY=:99.0'
   - Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
-  - sleep 3
   
   - wget -N http://chromedriver.storage.googleapis.com/87.0.4280.87/chromedriver_linux64.zip -P ~/
   - unzip ~/chromedriver_linux64.zip -d ~/
