@@ -270,11 +270,11 @@ class VotingModelTestCase(BaseTestCase):
         self.v=Voting(name="Votacion",question=q)
         self.v.save()
 
-        q2=Question(desc="Segunda Question")
+        q2=Question(desc="Segunda Pregunta")
         q2.save()
 
-        q2_opt1=QuestionOption(question=q2,option="primera")
-        q2_opt2=QuestionOption(question=q2,option="segunda")
+        q2_opt1=QuestionOption(question=q2,option="primera opcion")
+        q2_opt2=QuestionOption(question=q2,option="segunda opcion")
         q2_opt1.save()
         q2_opt2.save()
 
@@ -285,6 +285,7 @@ class VotingModelTestCase(BaseTestCase):
     def tearDown(self):
         super().tearDown()
         self.v=None
+        self.v2=None
 
     def test_exists(self):
         v=Voting.objects.get(name="Votacion")
@@ -304,8 +305,21 @@ class VotingModelTestCase(BaseTestCase):
         v1=Voting(name="Votacion Ordenada",question=q1)
         v1.save()
 
-        self.assertEquals(v1.question.order_options.all()[0].option,"primera")
-        self.assertEquals(v1.question.order_options.all()[0].order_number,2)
+        self.assertEquals(Voting.objects.get(name="Votacion Ordenada").question.order_options.all()[0].option,"primera")
+        self.assertEquals(Voting.objects.get(name="Votacion Ordenada").question.order_options.all()[0].order_number,2)
+
+        self.assertEquals(Voting.objects.get(name="Votacion Ordenada").question.order_options.all()[1].option,"segunda")
+        self.assertEquals(Voting.objects.get(name="Votacion Ordenada").question.order_options.all()[1].order_number,1)
+
+    def test_add_option_to_question(self):
+        v1=Voting.objects.get(name="Votacion")
+        q1=v1.question
+
+        self.assertEquals(len(q.options.all()),2)
         
-        self.assertEquals(v1.question.order_options.all()[1].option,"segunda")
-        self.assertEquals(v1.question.order_options.all()[1].order_number,1)
+        opt3=QuestionOption(question=q1,option="opcion3")
+        opt3.save()
+        v1.save()
+
+        self.assertEquals(Voting.objects.get(name="Votacion").question.options.all()[2].option,"opcion3")
+        self.assertEquals(len(Voting.objects.get(name="Votacion").question.options.all()),3)
