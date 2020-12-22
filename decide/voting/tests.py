@@ -300,14 +300,14 @@ class VotingModelTestCase(BaseTestCase):
         ord1 = QuestionOrder(question=q1, option="primera", order_number=2)
         ord1.save()
         ord2 = QuestionOrder(question=q1, option="segunda", order_number=1)
-        ord2.save() 
+        ord2.save()
 
         v1=Voting(name="Votacion Ordenada",question=q1)
         v1.save()
 
         query1=Voting.objects.get(name="Votacion Ordenada").question.order_options.filter(option="primera").get()
         query2=Voting.objects.get(name="Votacion Ordenada").question.order_options.filter(option="segunda").get()
-        
+
         self.assertEquals(query1.order_number,2)
         self.assertEquals(query2.order_number,1)
 
@@ -332,7 +332,7 @@ class VotingModelTestCase(BaseTestCase):
             opt=opt.option
             Question.objects.get(desc="Segunda Pregunta").options.filter(option=opt).delete()
         
-        options=Voting.objects.get(name="Segunda Votacion").question.options.all()        
+        options=Voting.objects.get(name="Segunda Votacion").question.options.all()
         self.assertFalse(options.count()!=0) #Comprueba que se han eliminado las opciones no ordenadas
 
         ord1 = QuestionOrder(question=q_bd, option="primera ordenada", order_number=2)
@@ -355,7 +355,7 @@ class VotingModelTestCase(BaseTestCase):
         q=Question(desc="Pregunta con orden invalido")
         q.save()
         order_number='error'
-        ord1 = QuestionOrder(question=q, option="error", order_number=order_number)
+        QuestionOrder(question=q, option="error", order_number=order_number)
 
         self.assertRaises(ValueError)
         self.assertRaisesRegex(ValueError,"ValueError: invalid literal for int() with base 10: {}".format(order_number))
