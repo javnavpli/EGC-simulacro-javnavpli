@@ -331,7 +331,7 @@ class VotingModelTestCase(BaseTestCase):
         for opt in q_bd.options.all():
             opt=opt.option
             Question.objects.get(desc="Segunda Pregunta").options.filter(option=opt).delete()
-        
+
         options=Voting.objects.get(name="Segunda Votacion").question.options.all()
         self.assertFalse(options.count()!=0) #Comprueba que se han eliminado las opciones no ordenadas
 
@@ -347,7 +347,7 @@ class VotingModelTestCase(BaseTestCase):
 
         query1=Voting.objects.get(name="Segunda Votacion").question.order_options.filter(option="primera ordenada").get()
         query2=Voting.objects.get(name="Segunda Votacion").question.order_options.filter(option="segunda ordenada").get()
-        
+
         self.assertEquals(query1.order_number,2)
         self.assertEquals(query2.order_number,1)
 
