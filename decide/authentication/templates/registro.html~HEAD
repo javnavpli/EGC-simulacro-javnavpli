@@ -9,16 +9,19 @@
     <link type="text/css" rel="stylesheet" href="{% static "booth/style.css" %}" />
 {% endblock %}
 
+
 {% block content %}
 <div id="app-booth">
-<h1>Bienvenido a Decide Autenticación</h1>
+<h1>Registro de usuario</h1>
 
-<nav>
-    <ul>
-        <li><a href="authentication/registro">Regístrate aquí</a></li>
-        <li><a href="">Login</a></li>
-    </ul>
-</nav>
+<form action="" method="post">
+    {% csrf_token %}
+    {{user_form.as_p}}
+    {{extra_form.as_p}}
+
+
+<button type="submit">Enviar</button>
+
+</form>
 </div>
-
 {% endblock %}
