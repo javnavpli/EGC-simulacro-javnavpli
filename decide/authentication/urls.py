@@ -1,6 +1,6 @@
 from django.urls import include, path
 from rest_framework.authtoken.views import obtain_auth_token
-from .views import GetUserView, LogoutView, registro_usuario, RegisterView, Home, login
+from .views import GetUserView, LogoutView, registro_usuario, RegisterView, inicio
 
 
 
@@ -10,5 +10,6 @@ urlpatterns = [
     path('getuser/', GetUserView.as_view()),
     path('register/', RegisterView.as_view()),
     path('registro/', registro_usuario),
-    path('log_in/', login),
+    path('inicio/', inicio, name="inicio")
+    
 ]

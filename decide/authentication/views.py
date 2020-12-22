@@ -17,6 +17,8 @@ from django.views.generic import TemplateView
 from django.contrib.auth.forms import UserCreationForm
 from django.template import RequestContext
 from django.contrib import messages
+from django.contrib.auth import login, authenticate
+
 
 from .forms import UserForm, ExtraForm
 from .models import Extra
@@ -29,29 +31,28 @@ def registro_usuario(request):
         user_form = UserForm(request.POST,"user_form")
 
         if extra_form.is_valid() and user_form.is_valid():
-            username = user_form.cleaned_data["username"]
             user_form.save()
+            username = user_form.cleaned_data["username"]
+            #password = user_form.cleaned_data["password1"]
             phone = extra_form.cleaned_data["phone"]
             double_authentication = extra_form.cleaned_data["double_authentication"]
             user = User.objects.get(username=username)
             Extra.objects.create(phone=phone, double_authentication=double_authentication,user=user)
-            
+            #user = authenticate(username=username, password=password)   
+            login(request, user) 
+            return redirect(to='inicio')
     formularios = {
         "user_form":user_form,
         "extra_form":extra_form,
     }       
     return render(request, 'registro.html', formularios)
 
-def login():
-    pass
+def inicio(request):
+    return render(request, 'inicio.html')
 
-def logout():
-    pass
 
-class Home(TemplateView):
-    template_name = 'index.html'
-    def home(request):
-        return render(request, 'index.html', context_instance=RequestContext(request))
+def home(request):
+    return render(request, 'index.html')
 
 
 class GetUserView(APIView):
