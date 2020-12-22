@@ -316,7 +316,7 @@ class VotingModelTestCase(BaseTestCase):
         q1=v1.question
 
         self.assertEquals(len(q1.options.all()),2)
-        
+
         opt3=QuestionOption(question=q1,option="opcion3")
         opt3.save()
         v1.save()
