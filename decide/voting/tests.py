@@ -15,6 +15,11 @@ from mixnet.mixcrypt import MixCrypt
 from mixnet.models import Auth
 from voting.models import Voting, Question, QuestionOption, QuestionOrder
 
+from selenium import webdriver
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.keys import Keys
 
 class VotingTestCase(BaseTestCase):
 
@@ -256,3 +261,72 @@ class VotingTestCase(BaseTestCase):
         response = self.client.put('/voting/{}/'.format(voting.pk), data, format='json')
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.json(), 'Voting already tallied')
+
+
+class VotingViewsTestCase(BaseTestCase):
+
+    def setUp(self):
+        options = webdriver.ChromeOptions()
+        options.headless = True
+        self.driver = webdriver.Chrome(options=options)
+
+        super().setUp()
+
+    def tearDown(self):
+        super().tearDown()
+        self.driver.quit()
+
+    def create_voting_view_test(self):
+        def setup_method(self, method):
+            self.driver = webdriver.Chrome()
+            self.vars = {}
+
+        def teardown_method(self, method):
+            self.driver.quit()
+
+        def wait_for_window(self, timeout = 2):
+            time.sleep(round(timeout / 1000))
+            wh_now = self.driver.window_handles
+            wh_then = self.vars["window_handles"]
+            if len(wh_now) > len(wh_then):
+                return set(wh_now).difference(set(wh_then)).pop()
+
+        def test_createvoting(self):
+
+            self.driver.get(f'{self.live_server_url}/admin/')
+            self.driver.find_element_by_id('id_username').send_keys("admin")
+            self.driver.find_element_by_id('id_password').send_keys("qwerty", Keys.ENTER)
+
+            assert self.driver.find_element(By.CSS_SELECTOR, "#content > h1").text == "Site administration"
+            self.driver.find_element(By.LINK_TEXT, "Votings").click()
+            self.driver.find_element(By.CSS_SELECTOR, ".addlink").click()
+            self.driver.find_element(By.ID, "id_name").send_keys("Voting selenium test")
+            self.driver.find_element(By.ID, "id_desc").click()
+            self.driver.find_element(By.ID, "id_desc").send_keys("Voting selenium test desc")
+            self.driver.find_element(By.ID, "id_question").click()
+            self.vars["window_handles"] = self.driver.window_handles
+            self.driver.find_element(By.CSS_SELECTOR, "#add_id_question > img").click()
+            self.vars["win2433"] = self.wait_for_window(2000)
+            self.vars["root"] = self.driver.current_window_handle
+            self.driver.switch_to.window(self.vars["win2433"])
+            self.driver.find_element(By.ID, "id_desc").click()
+            self.driver.find_element(By.ID, "id_desc").send_keys("Question description")
+            self.driver.find_element(By.ID, "id_options-0-option").click()
+            self.driver.find_element(By.ID, "id_options-0-option").send_keys("Option 1")
+            self.driver.find_element(By.ID, "id_options-1-option").click()
+            self.driver.find_element(By.ID, "id_options-1-option").send_keys("Option 2")
+            self.driver.find_element(By.NAME, "_save").click()
+            self.driver.close()
+            self.vars["window_handles"] = self.driver.window_handles
+            self.driver.switch_to.window(self.vars["root"])
+            self.vars["win1901"] = self.wait_for_window(2000)
+            self.driver.switch_to.window(self.vars["win1901"])
+            self.driver.find_element(By.ID, "id_name").send_keys("auth")
+            self.driver.find_element(By.ID, "id_url").click()
+            self.driver.find_element(By.ID, "id_url").send_keys("localhost:8000")
+            self.driver.find_element(By.NAME, "_save").click()
+            self.driver.close()
+            self.driver.switch_to.window(self.vars["root"])
+            self.driver.find_element(By.NAME, "_save").click()
+            self.driver.find_element(By.CSS_SELECTOR, ".row1 a").click()
+            assert self.driver.find_element(By.CSS_SELECTOR, "#content > h1").text == "Change voting" 
