@@ -305,11 +305,11 @@ class VotingModelTestCase(BaseTestCase):
         v1=Voting(name="Votacion Ordenada",question=q1)
         v1.save()
 
-        self.assertEquals(Voting.objects.get(name="Votacion Ordenada").question.order_options.all()[0].option,"primera")
-        self.assertEquals(Voting.objects.get(name="Votacion Ordenada").question.order_options.all()[0].order_number,2)
-
-        self.assertEquals(Voting.objects.get(name="Votacion Ordenada").question.order_options.all()[1].option,"segunda")
-        self.assertEquals(Voting.objects.get(name="Votacion Ordenada").question.order_options.all()[1].order_number,1)
+        query1=Voting.objects.get(name="Votacion Ordenada").question.order_options.filter(option="primera").get()
+        query2=Voting.objects.get(name="Votacion Ordenada").question.order_options.filter(option="segunda").get()
+        
+        self.assertEquals(query1.order_number,2)
+        self.assertEquals(query2.order_number,1)
 
     def test_add_option_to_question(self):
         v1=Voting.objects.get(name="Votacion")
@@ -345,5 +345,17 @@ class VotingModelTestCase(BaseTestCase):
         order_options=Voting.objects.get(name="Segunda Votacion").question.order_options.all()
         self.assertTrue(order_options.count()==2)
 
-        self.assertEquals(Voting.objects.get(name="Segunda Votacion").question.order_options.all()[0].order_number,2)
-        self.assertEquals(Voting.objects.get(name="Segunda Votacion").question.order_options.all()[1].order_number,1)
+        query1=Voting.objects.get(name="Segunda Votacion").question.order_options.filter(option="primera ordenada").get()
+        query2=Voting.objects.get(name="Segunda Votacion").question.order_options.filter(option="segunda ordenada").get()
+        
+        self.assertEquals(query1.order_number,2)
+        self.assertEquals(query2.order_number,1)
+
+    def test_invalid_order_number(self):
+        q=Question(desc="Pregunta con orden invalido")
+        q.save()
+        order_number='error'
+        ord1 = QuestionOrder(question=q, option="error", order_number=order_number)
+
+        self.assertRaises(ValueError)
+        self.assertRaisesRegex(ValueError,"ValueError: invalid literal for int() with base 10: {}".format(order_number))
