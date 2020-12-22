@@ -293,19 +293,19 @@ class VotingModelTestCase(BaseTestCase):
         self.assertEquals(len(v.question.options.all()),2)
 
     def test_exists_with_order(self):
-        q=Question(desc="Pregunta con opciones ordenadas")
-        q.save()
+        q1=Question(desc="Pregunta con opciones ordenadas")
+        q1.save()
 
-        ord1 = QuestionOrder(question=q, option="primera", order_number=2)
-        ord2 = QuestionOrder(question=q, option="segunda", order_number=1)
+        ord1 = QuestionOrder(question=q1, option="primera", order_number=2)
         ord1.save()
+        ord2 = QuestionOrder(question=q1, option="segunda", order_number=1)
         ord2.save() 
 
-        v=Voting(name="Votacion Ordenada",question=q)
-        v.save()
+        v1=Voting(name="Votacion Ordenada",question=q1)
+        v1.save()
 
-        self.assertEquals(v.question.order_options.all()[0].option,"primera")
-        self.assertEquals(v.question.order_options.all()[1].option,"segunda")
-
-        self.assertEquals(v.question.order_options.all()[0].order_number,2)
-        self.assertEquals(v.question.order_options.all()[1].order_number,1)
+        self.assertEquals(v1.question.order_options.all()[0].option,"primera")
+        self.assertEquals(v1.question.order_options.all()[0].order_number,2)
+        
+        self.assertEquals(v1.question.order_options.all()[1].option,"segunda")
+        self.assertEquals(v1.question.order_options.all()[1].order_number,1)
