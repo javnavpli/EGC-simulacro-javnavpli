@@ -256,3 +256,106 @@ class VotingTestCase(BaseTestCase):
         response = self.client.put('/voting/{}/'.format(voting.pk), data, format='json')
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.json(), 'Voting already tallied')
+
+class VotingModelTestCase(BaseTestCase):
+    def setUp(self):
+        q=Question(desc="Esta es la descripcion")
+        q.save()
+
+        opt1=QuestionOption(question=q,option="opcion1")
+        opt2=QuestionOption(question=q,option="opcion2")
+        opt1.save()
+        opt2.save()
+
+        self.v=Voting(name="Votacion",question=q)
+        self.v.save()
+
+        q2=Question(desc="Segunda Pregunta")
+        q2.save()
+
+        q2_opt1=QuestionOption(question=q2,option="primera opcion")
+        q2_opt2=QuestionOption(question=q2,option="segunda opcion")
+        q2_opt1.save()
+        q2_opt2.save()
+
+        self.v2=Voting(name="Segunda Votacion",question=q2)
+        self.v2.save()
+        super().setUp()
+
+    def tearDown(self):
+        super().tearDown()
+        self.v=None
+        self.v2=None
+
+    def test_exists(self):
+        v=Voting.objects.get(name="Votacion")
+        self.assertEquals(v.question.options.all()[0].option,"opcion1")
+        self.assertEquals(v.question.options.all()[1].option,"opcion2")
+        self.assertEquals(len(v.question.options.all()),2)
+
+    def test_exists_with_order(self):
+        q1=Question(desc="Pregunta con opciones ordenadas")
+        q1.save()
+
+        ord1 = QuestionOrder(question=q1, option="primera", order_number=2)
+        ord1.save()
+        ord2 = QuestionOrder(question=q1, option="segunda", order_number=1)
+        ord2.save()
+
+        v1=Voting(name="Votacion Ordenada",question=q1)
+        v1.save()
+
+        query1=Voting.objects.get(name="Votacion Ordenada").question.order_options.filter(option="primera").get()
+        query2=Voting.objects.get(name="Votacion Ordenada").question.order_options.filter(option="segunda").get()
+
+        self.assertEquals(query1.order_number,2)
+        self.assertEquals(query2.order_number,1)
+
+    def test_add_option_to_question(self):
+        v1=Voting.objects.get(name="Votacion")
+        q1=v1.question
+
+        self.assertEquals(len(q1.options.all()),2)
+
+        opt3=QuestionOption(question=q1,option="opcion3")
+        opt3.save()
+        v1.save()
+
+        self.assertEquals(Voting.objects.get(name="Votacion").question.options.all()[2].option,"opcion3")
+        self.assertEquals(len(Voting.objects.get(name="Votacion").question.options.all()),3)
+
+    def test_add_order_to_existing_question(self):
+        v_bd=Voting.objects.get(name="Segunda Votacion")
+        q_bd=v_bd.question
+
+        for opt in q_bd.options.all():
+            opt=opt.option
+            Question.objects.get(desc="Segunda Pregunta").options.filter(option=opt).delete()
+
+        options=Voting.objects.get(name="Segunda Votacion").question.options.all()
+        self.assertFalse(options.count()!=0) #Comprueba que se han eliminado las opciones no ordenadas
+
+        ord1 = QuestionOrder(question=q_bd, option="primera ordenada", order_number=2)
+        ord1.save()
+        ord2 = QuestionOrder(question=q_bd, option="segunda ordenada", order_number=1)
+        ord2.save()
+
+        v_bd.save()
+
+        order_options=Voting.objects.get(name="Segunda Votacion").question.order_options.all()
+        self.assertTrue(order_options.count()==2)
+
+        query1=Voting.objects.get(name="Segunda Votacion").question.order_options.filter(option="primera ordenada").get()
+        query2=Voting.objects.get(name="Segunda Votacion").question.order_options.filter(option="segunda ordenada").get()
+
+        self.assertEquals(query1.order_number,2)
+        self.assertEquals(query2.order_number,1)
+
+    def test_invalid_order_number(self):
+        q=Question(desc="Pregunta con orden invalido")
+        q.save()
+        order_number='error'
+        QuestionOrder(question=q, option="error", order_number=order_number)
+
+        self.assertRaises(ValueError)
+        self.assertRaisesRegex(ValueError,"ValueError: invalid literal for int() with base 10: {}".format(order_number))
