@@ -1,7 +1,19 @@
+{% extends "base.html" %}
+{% load i18n static %}
 
-<h1>Registro de usuario</h1>
+{% block extrahead %}
+    <link type="text/css" rel="stylesheet"
+         href="https://unpkg.com/bootstrap/dist/css/bootstrap.min.css" />
+    <link type="text/css" rel="stylesheet"
+         href="https://unpkg.com/bootstrap-vue@latest/dist/bootstrap-vue.css" />
+    <link type="text/css" rel="stylesheet" href="{% static "booth/style.css" %}" />
+{% endblock %}
+
 
 {% block content %}
+<div id="app-booth">
+<h1>Registro de usuario</h1>
+
 <form action="" method="post">
     {% csrf_token %}
     {{user_form.as_p}}
@@ -11,4 +23,5 @@
 <button type="submit">Enviar</button>
 
 </form>
+</div>
 {% endblock %}
