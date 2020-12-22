@@ -269,14 +269,43 @@ class VotingModelTestCase(BaseTestCase):
 
         self.v=Voting(name="Votacion",question=q)
         self.v.save()
+
+        q2=Question(desc="Segunda Question")
+        q2.save()
+
+        q2_opt1=QuestionOption(question=q2,option="primera")
+        q2_opt2=QuestionOption(question=q2,option="segunda")
+        q2_opt1.save()
+        q2_opt2.save()
+
+        self.v2=Voting(name="Segunda Votacion",question=q2)
+        self.v2.save()
         super().setUp()
 
     def tearDown(self):
         super().tearDown()
         self.v=None
 
-    def testExists(self):
+    def test_exists(self):
         v=Voting.objects.get(name="Votacion")
         self.assertEquals(v.question.options.all()[0].option,"opcion1")
         self.assertEquals(v.question.options.all()[1].option,"opcion2")
         self.assertEquals(len(v.question.options.all()),2)
+
+    def test_exists_with_order(self):
+        q=Question(desc="Pregunta con opciones ordenadas")
+        q.save()
+
+        ord1 = QuestionOrder(question=q, option="primera", order_number=2)
+        ord2 = QuestionOrder(question=q, option="segunda", order_number=1)
+        ord1.save()
+        ord2.save() 
+
+        v=Voting(name="Votacion Ordenada",question=q)
+        v.save()
+
+        self.assertEquals(v.question.order_options.all()[0].option,"primera")
+        self.assertEquals(v.question.order_options.all()[1].option,"segunda")
+
+        self.assertEquals(v.question.order_options.all()[0].order_number,2)
+        self.assertEquals(v.question.order_options.all()[1].order_number,1)
