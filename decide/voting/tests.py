@@ -315,7 +315,7 @@ class VotingModelTestCase(BaseTestCase):
         v1=Voting.objects.get(name="Votacion")
         q1=v1.question
 
-        self.assertEquals(len(q.options.all()),2)
+        self.assertEquals(len(q1.options.all()),2)
         
         opt3=QuestionOption(question=q1,option="opcion3")
         opt3.save()
@@ -323,3 +323,27 @@ class VotingModelTestCase(BaseTestCase):
 
         self.assertEquals(Voting.objects.get(name="Votacion").question.options.all()[2].option,"opcion3")
         self.assertEquals(len(Voting.objects.get(name="Votacion").question.options.all()),3)
+
+    def test_add_order_to_existing_question(self):
+        v_bd=Voting.objects.get(name="Segunda Votacion")
+        q_bd=v_bd.question
+
+        for opt in q_bd.options.all():
+            opt=opt.option
+            Question.objects.get(desc="Segunda Pregunta").options.filter(option=opt).delete()
+        
+        options=Voting.objects.get(name="Segunda Votacion").question.options.all()        
+        self.assertFalse(options.count()!=0) #Comprueba que se han eliminado las opciones no ordenadas
+
+        ord1 = QuestionOrder(question=q_bd, option="primera ordenada", order_number=2)
+        ord1.save()
+        ord2 = QuestionOrder(question=q_bd, option="segunda ordenada", order_number=1)
+        ord2.save()
+
+        v_bd.save()
+
+        order_options=Voting.objects.get(name="Segunda Votacion").question.order_options.all()
+        self.assertTrue(order_options.count()==2)
+
+        self.assertEquals(Voting.objects.get(name="Segunda Votacion").question.order_options.all()[0].order_number,2)
+        self.assertEquals(Voting.objects.get(name="Segunda Votacion").question.order_options.all()[1].order_number,1)
