@@ -292,11 +292,11 @@ class VotingViewsTestCase(BaseTestCase):
                 return set(wh_now).difference(set(wh_then)).pop()
 
         def test_createvoting(self):
-
+            #Proceso para loguearse como administrador
             self.driver.get(f'{self.live_server_url}/admin/')
             self.driver.find_element_by_id('id_username').send_keys("admin")
             self.driver.find_element_by_id('id_password').send_keys("qwerty", Keys.ENTER)
-
+            #Proceso para añadir una pregunta y sus opciones
             assert self.driver.find_element(By.CSS_SELECTOR, "#content > h1").text == "Site administration"
             self.driver.find_element(By.LINK_TEXT, "Votings").click()
             self.driver.find_element(By.CSS_SELECTOR, ".addlink").click()
@@ -305,6 +305,7 @@ class VotingViewsTestCase(BaseTestCase):
             self.driver.find_element(By.ID, "id_desc").send_keys("Voting selenium test desc")
             self.driver.find_element(By.ID, "id_question").click()
             self.vars["window_handles"] = self.driver.window_handles
+            #Proceso para añadir una pregunta y sus opciones
             self.driver.find_element(By.CSS_SELECTOR, "#add_id_question > img").click()
             self.vars["win2433"] = self.wait_for_window(2000)
             self.vars["root"] = self.driver.current_window_handle
@@ -317,6 +318,7 @@ class VotingViewsTestCase(BaseTestCase):
             self.driver.find_element(By.ID, "id_options-1-option").send_keys("Option 2")
             self.driver.find_element(By.NAME, "_save").click()
             self.driver.close()
+            #Vuelta a la vista para crear una votación, y creación de un Auth
             self.vars["window_handles"] = self.driver.window_handles
             self.driver.switch_to.window(self.vars["root"])
             self.vars["win1901"] = self.wait_for_window(2000)
@@ -326,7 +328,63 @@ class VotingViewsTestCase(BaseTestCase):
             self.driver.find_element(By.ID, "id_url").send_keys("localhost:8000")
             self.driver.find_element(By.NAME, "_save").click()
             self.driver.close()
+            #Proceso para guardar la votación, y comprobar si se ha realizado correctamente
             self.driver.switch_to.window(self.vars["root"])
             self.driver.find_element(By.NAME, "_save").click()
             self.driver.find_element(By.CSS_SELECTOR, ".row1 a").click()
             assert self.driver.find_element(By.CSS_SELECTOR, "#content > h1").text == "Change voting" 
+
+        def test_testcreateorderingvoting(self):
+            #Proceso para loguearse como administrador
+            self.driver.get(f'{self.live_server_url}/admin/')
+            self.driver.find_element_by_id('id_username').send_keys("admin")
+            self.driver.find_element_by_id('id_password').send_keys("qwerty", Keys.ENTER)
+            #Proceso para crear una votación
+            assert self.driver.find_element(By.CSS_SELECTOR, "#content > h1").text == "Site administration"
+            self.driver.find_element(By.LINK_TEXT, "Votings").click()
+            assert self.driver.find_element(By.CSS_SELECTOR, "#content > h1").text == "Select voting to change"
+            self.driver.find_element(By.CSS_SELECTOR, ".addlink").click()
+            self.driver.find_element(By.ID, "id_name").send_keys("Ordering voting test")
+            self.driver.find_element(By.ID, "id_desc").click()
+            self.driver.find_element(By.ID, "id_desc").send_keys("Ordering voting test")
+            self.vars["window_handles"] = self.driver.window_handles
+            #Proceso para añadir una pregunta y sus opciones
+            self.driver.find_element(By.CSS_SELECTOR, "#add_id_question > img").click()
+            self.vars["win8328"] = self.wait_for_window(2000)
+            self.vars["root"] = self.driver.current_window_handle
+            self.driver.switch_to.window(self.vars["win8328"])
+            self.driver.find_element(By.ID, "id_desc").send_keys("Voting ordering question description")
+            self.driver.find_element(By.CSS_SELECTOR, "#options-group h2").click()
+            self.driver.find_element(By.ID, "id_order_options-0-order_number").send_keys("1")
+            self.driver.find_element(By.ID, "id_order_options-0-order_number").click()
+            self.driver.find_element(By.ID, "id_order_options-1-order_number").send_keys("1")
+            self.driver.find_element(By.ID, "id_order_options-1-order_number").click()
+            self.driver.find_element(By.ID, "id_order_options-1-order_number").send_keys("2")
+            self.driver.find_element(By.ID, "id_order_options-1-order_number").click()
+            element = self.driver.find_element(By.ID, "id_order_options-1-order_number")
+            actions = ActionChains(self.driver)
+            actions.double_click(element).perform()
+            self.driver.find_element(By.ID, "id_order_options-0-option").click()
+            self.driver.find_element(By.ID, "id_order_options-0-option").send_keys("Question option one")
+            self.driver.find_element(By.ID, "id_order_options-1-option").click()
+            self.driver.find_element(By.ID, "id_order_options-1-option").send_keys("Question option two")
+            self.driver.find_element(By.CSS_SELECTOR, "#order_options-0 > .field-number").click()
+            self.driver.find_element(By.NAME, "_save").click()
+            self.driver.close()
+            #Vuelta a la vista para crear una votación, y creación de un Auth
+            self.vars["window_handles"] = self.driver.window_handles
+            self.driver.switch_to.window(self.vars["root"])
+            self.vars["win6682"] = self.wait_for_window(2000)
+            self.driver.switch_to.window(self.vars["win6682"])
+            self.driver.find_element(By.ID, "id_name").send_keys("localhost")
+            self.driver.find_element(By.ID, "id_url").send_keys("localhost:8000")
+            self.driver.find_element(By.NAME, "_save").click()
+            self.driver.close()
+            #Proceso para guardar la votación, y comprobar si se ha realizado correctamente
+            self.driver.switch_to.window(self.vars["root"])
+            assert self.driver.find_element(By.CSS_SELECTOR, ".success").text == "The voting \\\"Ordering voting test\\\" was added successfully."
+            self.driver.find_element(By.NAME, "_selected_action").click()
+            self.driver.find_element(By.NAME, "action").click()
+            dropdown = self.driver.find_element(By.NAME, "action")
+            dropdown.find_element(By.XPATH, "//option[. = 'Start']").click()
+            self.driver.find_element(By.CSS_SELECTOR, "option:nth-child(3)").click()
