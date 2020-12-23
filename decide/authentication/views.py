@@ -33,12 +33,10 @@ def registro_usuario(request):
         if extra_form.is_valid() and user_form.is_valid():
             user_form.save()
             username = user_form.cleaned_data["username"]
-            #password = user_form.cleaned_data["password1"]
             phone = extra_form.cleaned_data["phone"]
             double_authentication = extra_form.cleaned_data["double_authentication"]
             user = User.objects.get(username=username)
-            Extra.objects.create(phone=phone, double_authentication=double_authentication,user=user)
-            #user = authenticate(username=username, password=password)   
+            Extra.objects.create(phone=phone, double_authentication=double_authentication,user=user)   
             login(request, user) 
             return redirect(to='inicio')
     formularios = {
