@@ -374,7 +374,7 @@ class VotingViewsTestCase(StaticLiveServerTestCase):
         self.base.setUp()
 
         self.vars = {}
-        
+
         options = webdriver.ChromeOptions()
         options.headless = True
         self.driver = webdriver.Chrome(options=options)
