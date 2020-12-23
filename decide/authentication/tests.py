@@ -170,25 +170,25 @@ class FormTestCase(TestCase):
         self.assertTrue(form.is_valid())
 
     #Formato incorrecto teléfono (menos de 9 digitos)
-    def test_extra_form_incorrect(self):
+    def test_extra_form_incorrect_less_digits(self):
         form_data = {'phone':'123', 'double_authentication':'True'}
         form = ExtraForm(data=form_data)
         self.assertFalse(form.is_valid())
 
     #Formato incorrecto teléfono (más de 9 digitos)
-    def test_extra_form_incorrect(self):
+    def test_extra_form_incorrect_more_digits(_self):
         form_data = {'phone':'1234567895', 'double_authentication':'True'}
         form = ExtraForm(data=form_data)
         self.assertFalse(form.is_valid())
 
     #Formato incorrecto teléfono (caracteres que no son digitos)
-    def test_extra_form_incorrect(self):
+    def test_extra_form_incorrect_char(self):
         form_data = {'phone':'123lopujk', 'double_authentication':'True'}
         form = ExtraForm(data=form_data)
         self.assertFalse(form.is_valid())
 
     #Campo telefono vacío
-    def test_extra_form_incorrect(self):
+    def test_extra_form_incorrect_blank_phone(self):
         form_data = {'phone':'', 'double_authentication':'True'}
         form = ExtraForm(data=form_data)
         self.assertFalse(form.is_valid())
