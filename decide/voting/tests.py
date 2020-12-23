@@ -372,7 +372,7 @@ class VotingViewsTestCase(StaticLiveServerTestCase):
         # Load base test functionality for decide
         self.base = BaseTestCase()
         self.base.setUp()
-        
+
         self.vars = {}
         
         options = webdriver.ChromeOptions()
