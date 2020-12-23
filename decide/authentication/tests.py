@@ -8,6 +8,7 @@ from base.tests import BaseTestCase
 from base import mods
 
 from .forms import UserForm, ExtraForm
+from .models import Extra
 
 class AuthTestCase(APITestCase):
 
@@ -192,3 +193,24 @@ class FormTestCase(TestCase):
         form_data = {'phone':'', 'double_authentication':'True'}
         form = ExtraForm(data=form_data)
         self.assertFalse(form.is_valid())
+
+class ExtraModel(TestCase):
+
+    #Creación del modelo extra correctamente y su metodo string
+    def test_extra_str(self):
+        u = User(username='voter1')
+        u.set_password('123')
+        u.save()
+        extra = Extra.objects.create(phone='123456789', double_authentication = True, user=u)
+        self.assertEqual(str(extra), "123456789")
+
+    #Creación del modelo extra correctamente, comprobando que el valor de sus atributos es correcto tras su creación
+    def test_extra_valor_campos(self):
+        u = User(username='voter1')
+        u.set_password('123')
+        u.save()
+        extra = Extra.objects.create(phone='123456789', double_authentication = True, user=u)
+        self.assertEqual(extra.phone, "123456789")
+        self.assertEqual(extra.double_authentication, True)
+        self.assertEqual(extra.user, u)
+    
