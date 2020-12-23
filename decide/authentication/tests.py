@@ -176,7 +176,7 @@ class FormTestCase(TestCase):
         self.assertFalse(form.is_valid())
 
     #Formato incorrecto teléfono (más de 9 digitos)
-    def test_extra_form_incorrect_more_digits(_self):
+    def test_extra_form_incorrect_more_digits(self):
         form_data = {'phone':'1234567895', 'double_authentication':'True'}
         form = ExtraForm(data=form_data)
         self.assertFalse(form.is_valid())
