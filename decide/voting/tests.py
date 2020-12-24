@@ -43,7 +43,7 @@ class VotingTestCase(BaseTestCase):
         for i in range(5):
             opt = QuestionOption(question=q, option='option {}'.format(i+1))
             opt.save()
-        v = Voting(name='test voting', question=q)
+        v = Voting(name='test voting', question=q, link="prueba")
         v.save()
 
         a, _ = Auth.objects.get_or_create(url=settings.BASEURL,
@@ -159,6 +159,7 @@ class VotingTestCase(BaseTestCase):
         data = {
             'name': 'Example',
             'desc': 'Description example',
+            'link': 'example',
             'question': 'I want a ',
             'question_opt': ['cat', 'dog', 'horse'],
             'question_ord': []
@@ -177,6 +178,7 @@ class VotingTestCase(BaseTestCase):
         data = {
             'name': 'Example',
             'desc': 'Description example',
+            'link': 'example',
             'question': 'I want a ',
             'question_opt': [],
             'question_ord': ['cat', 'dog', 'horse']
@@ -273,7 +275,7 @@ class VotingModelTestCase(BaseTestCase):
         opt1.save()
         opt2.save()
 
-        self.v=Voting(name="Votacion",question=q)
+        self.v=Voting(name="Votacion",question=q, link="link1")
         self.v.save()
 
         q2=Question(desc="Segunda Pregunta")
@@ -284,7 +286,7 @@ class VotingModelTestCase(BaseTestCase):
         q2_opt1.save()
         q2_opt2.save()
 
-        self.v2=Voting(name="Segunda Votacion",question=q2)
+        self.v2=Voting(name="Segunda Votacion",question=q2, link="link2")
         self.v2.save()
         super().setUp()
 
@@ -409,6 +411,7 @@ class VotingViewsTestCase(StaticLiveServerTestCase):
         self.driver.find_element(By.CSS_SELECTOR, ".addlink").click()
         self.driver.find_element_by_id('id_name').send_keys("Voting selenium test")
         self.driver.find_element_by_id('id_desc').send_keys("Voting selenium test desc")
+        self.driver.find_element_by_id('id_link').send_keys("seleniumtest")
         self.driver.find_element_by_id('id_question').click()
         self.vars["window_handles"] = self.driver.window_handles
         #Proceso para añadir una pregunta y sus opciones
@@ -454,6 +457,7 @@ class VotingViewsTestCase(StaticLiveServerTestCase):
         self.driver.find_element(By.CSS_SELECTOR, ".addlink").click()
         self.driver.find_element_by_id('id_name').send_keys("Ordering voting test")
         self.driver.find_element_by_id('id_desc').send_keys("Ordering voting test desc")
+        self.driver.find_element_by_id('id_link').send_keys("seleniumtest")
         self.driver.find_element_by_id('id_question').click()
         self.vars["window_handles"] = self.driver.window_handles
         #Proceso para añadir una pregunta y sus opciones
@@ -506,6 +510,7 @@ class VotingViewsTestCase(StaticLiveServerTestCase):
         self.driver.find_element(By.CSS_SELECTOR, ".addlink").click()
         self.driver.find_element_by_id('id_name').send_keys("Ordering voting test")
         self.driver.find_element_by_id('id_desc').send_keys("Ordering voting test desc")
+        self.driver.find_element_by_id('id_link').send_keys("seleniumtest")
         self.driver.find_element_by_id('id_question').click()
         self.vars["window_handles"] = self.driver.window_handles
         #Proceso para añadir una pregunta y sus opciones

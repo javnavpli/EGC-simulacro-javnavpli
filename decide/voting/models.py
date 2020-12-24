@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.postgres.fields import JSONField
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.core.validators import RegexValidator
 
 from base import mods
 from base.models import Auth, Key
@@ -47,6 +48,8 @@ class Voting(models.Model):
     name = models.CharField(max_length=200)
     desc = models.TextField(blank=True, null=True)
     question = models.ForeignKey(Question, related_name='voting', on_delete=models.CASCADE)
+    alpha = RegexValidator("^[0-9a-zA-Z]*$", "Sólo se permiten letras y números.")
+    link = models.CharField(max_length=30, default="", unique=True ,validators=[alpha])
 
     start_date = models.DateTimeField(blank=True, null=True)
     end_date = models.DateTimeField(blank=True, null=True)
