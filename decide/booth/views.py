@@ -30,7 +30,7 @@ class BoothView(TemplateView):
         context['KEYBITS'] = settings.KEYBITS
 
         return context
-    
+
 class BoothViewUrl(TemplateView):
     template_name = 'booth/booth.html'
 
