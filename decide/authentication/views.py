@@ -13,6 +13,8 @@ from django.core.exceptions import ObjectDoesNotExist
 
 from .serializers import UserSerializer
 
+from .email import send_mail_with_token
+
 
 class GetUserView(APIView):
     def post(self, request):
@@ -53,3 +55,36 @@ class RegisterView(APIView):
         except IntegrityError:
             return Response({}, status=HTTP_400_BAD_REQUEST)
         return Response({'user_pk': user.pk, 'token': token.key}, HTTP_201_CREATED)
+
+
+from django.core.mail import BadHeaderError
+
+class EmailGenerateTokenView(APIView):
+
+    def post(self, request):
+        email = request.data.get('email', '')
+        if not email:
+            return Response({}, status=HTTP_400_BAD_REQUEST)
+
+        user = get_object_or_404(User, email=email)
+        if not user:
+            return Response({}, status=HTTP_400_BAD_REQUEST)
+
+        try:
+            send_mail_with_token(email, 'token')
+        except BadHeaderError:
+            return Response({}, status=HTTP_400_BAD_REQUEST)
+
+        return Response({}, status=HTTP_201_CREATED)
+
+class EmailConfirmTokenView(APIView):
+
+    def get(self, request):
+        token = request.data.get('token', '')
+        if not token:
+            return Response({}, status=HTTP_400_BAD_REQUEST)
+
+
+
+
+        return Response({}, status=HTTP_201_CREATED)
