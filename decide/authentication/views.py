@@ -13,7 +13,11 @@ from django.core.exceptions import ObjectDoesNotExist
 
 from .serializers import UserSerializer
 
+from django.core.mail import BadHeaderError
 from .email import send_mail_with_token
+from .models import EmailToken
+import pyotp
+import time
 
 
 class GetUserView(APIView):
@@ -56,9 +60,6 @@ class RegisterView(APIView):
             return Response({}, status=HTTP_400_BAD_REQUEST)
         return Response({'user_pk': user.pk, 'token': token.key}, HTTP_201_CREATED)
 
-
-from django.core.mail import BadHeaderError
-
 class EmailGenerateTokenView(APIView):
 
     def post(self, request):
@@ -71,7 +72,18 @@ class EmailGenerateTokenView(APIView):
             return Response({}, status=HTTP_400_BAD_REQUEST)
 
         try:
-            send_mail_with_token(email, 'token')
+            secret = pyotp.random_base32()
+
+            email_token, created = EmailToken.objects.get_or_create(user=user)
+
+            email_token.secret = secret
+            email_token.save()
+
+            print(secret)
+            totp = pyotp.TOTP(secret, interval=5)
+            token = totp.now()
+            
+            send_mail_with_token(email, token)
         except BadHeaderError:
             return Response({}, status=HTTP_400_BAD_REQUEST)
 

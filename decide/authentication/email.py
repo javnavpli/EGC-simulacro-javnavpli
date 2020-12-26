@@ -7,9 +7,9 @@ def send_mail_with_token(to_email, token):
     from_email = 'Decide <do_not_reply@example.com>'
 
     cont = { 
-            'usuario': 'username de prueba',
-            'token': token
-        }
+        'usuario': 'username de prueba',
+        'token': token
+    }
 
     msg_plain = get_template('email.txt').render(cont)
     msg_html = get_template('email.html').render(cont)
