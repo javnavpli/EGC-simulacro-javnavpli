@@ -47,6 +47,7 @@ def registro_usuario(request):
 
 def inicio(request):
     return render(request, 'inicio.html')
+    
 
 
 def home(request):
