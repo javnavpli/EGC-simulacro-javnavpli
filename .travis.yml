@@ -29,7 +29,6 @@ python:
 install:
   - pip install -r requirements.txt
   - pip install codacy-coverage
-  - pip install selenium
   - pip install webdriver-manager
   
 script:
