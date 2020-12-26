@@ -4,9 +4,11 @@ from rest_framework.test import APITestCase
 
 from django.contrib.auth.models import User
 from rest_framework.authtoken.models import Token
-
+from base.tests import BaseTestCase
 from base import mods
 
+from .forms import UserForm, ExtraForm
+from .models import Extra
 
 class AuthTestCase(APITestCase):
 
@@ -128,3 +130,87 @@ class AuthTestCase(APITestCase):
             sorted(list(response.json().keys())),
             ['token', 'user_pk']
         )
+
+
+class FormTestCase(TestCase):
+
+    #Formato válido campos usuario
+    def test_user_form_correct(self):
+        form_data = {'username': 'test1', 'first_name': 'Test1', 'last_name': 'Test1', 'email':'test1@gmail.com', 'password1': 'hola1234', 'password2': 'hola1234'}
+        form = UserForm(data=form_data)
+        self.assertTrue(form.is_valid())
+
+    #La contraseña de verificación es incorrecta
+    def test_user_form_incorrect_passwords(self):
+        form_data = {'username': 'test1', 'first_name': 'Test1', 'last_name': 'Test1', 'email':'test1@gmail.com', 'password1': 'hola1234', 'password2': 'adios1234'}
+        form = UserForm(data=form_data)
+        self.assertFalse(form.is_valid())
+
+    #El formato de la contraseña es incorrecta  
+    def test_user_form_incorrect__format_password(self):
+        form_data = {'username': 'test1', 'first_name': 'Test1', 'last_name': 'Test1', 'email':'test1@gmail.com', 'password1': 'hola', 'password2': 'hola'}
+        form = UserForm(data=form_data)
+        self.assertFalse(form.is_valid())
+
+    #Username vacío 
+    def test_user_form_blank_username(self):
+        form_data = {'username': '', 'first_name': 'Test1', 'last_name': 'Test1', 'email':'test1@gmail.com', 'password1': 'hola1234', 'password2': 'hola1234'}
+        form = UserForm(data=form_data)
+        self.assertFalse(form.is_valid())
+
+    #Password vacía
+    def test_user_form_blank_password(self):
+        form_data = {'username': 'test1', 'first_name': 'Test1', 'last_name': 'Test1', 'email':'test1@gmail.com', 'password1': '', 'password2': ''}
+        form = UserForm(data=form_data)
+        self.assertFalse(form.is_valid())
+
+    #Formato válido campos extra
+    def test_extra_form_correct(self):
+        form_data = {'phone':'999999999', 'double_authentication':'True'}
+        form = ExtraForm(data=form_data)
+        self.assertTrue(form.is_valid())
+
+    #Formato incorrecto teléfono (menos de 9 digitos)
+    def test_extra_form_incorrect_less_digits(self):
+        form_data = {'phone':'123', 'double_authentication':'True'}
+        form = ExtraForm(data=form_data)
+        self.assertFalse(form.is_valid())
+
+    #Formato incorrecto teléfono (más de 9 digitos)
+    def test_extra_form_incorrect_more_digits(self):
+        form_data = {'phone':'1234567895', 'double_authentication':'True'}
+        form = ExtraForm(data=form_data)
+        self.assertFalse(form.is_valid())
+
+    #Formato incorrecto teléfono (caracteres que no son digitos)
+    def test_extra_form_incorrect_char(self):
+        form_data = {'phone':'123lopujk', 'double_authentication':'True'}
+        form = ExtraForm(data=form_data)
+        self.assertFalse(form.is_valid())
+
+    #Campo telefono vacío
+    def test_extra_form_incorrect_blank_phone(self):
+        form_data = {'phone':'', 'double_authentication':'True'}
+        form = ExtraForm(data=form_data)
+        self.assertFalse(form.is_valid())
+
+class ExtraModel(TestCase):
+
+    #Creación del modelo extra correctamente y su metodo string
+    def test_extra_str(self):
+        u = User(username='voter1')
+        u.set_password('123')
+        u.save()
+        extra = Extra.objects.create(phone='123456789', double_authentication = True, user=u)
+        self.assertEqual(str(extra), "123456789")
+
+    #Creación del modelo extra correctamente, comprobando que el valor de sus atributos es correcto tras su creación
+    def test_extra_valor_campos(self):
+        u = User(username='voter1')
+        u.set_password('123')
+        u.save()
+        extra = Extra.objects.create(phone='123456789', double_authentication = True, user=u)
+        self.assertEqual(extra.phone, "123456789")
+        self.assertEqual(extra.double_authentication, True)
+        self.assertEqual(extra.user, u)
+    

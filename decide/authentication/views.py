@@ -10,8 +10,48 @@ from django.contrib.auth.models import User
 from django.db import IntegrityError
 from django.shortcuts import get_object_or_404
 from django.core.exceptions import ObjectDoesNotExist
-
+from django import forms
 from .serializers import UserSerializer
+from django.shortcuts import render, redirect
+from django.views.generic import TemplateView
+from django.contrib.auth.forms import UserCreationForm
+from django.template import RequestContext
+from django.contrib import messages
+from django.contrib.auth import login, authenticate
+
+
+from .forms import UserForm, ExtraForm
+from .models import Extra
+
+def registro_usuario(request):
+    user_form = UserForm()
+    extra_form = ExtraForm()
+    if request.method == 'POST':
+        extra_form = ExtraForm(request.POST,"extra_form")
+        user_form = UserForm(request.POST,"user_form")
+
+        if extra_form.is_valid() and user_form.is_valid():
+            user_form.save()
+            username = user_form.cleaned_data["username"]
+            phone = extra_form.cleaned_data["phone"]
+            double_authentication = extra_form.cleaned_data["double_authentication"]
+            user = User.objects.get(username=username)
+            Extra.objects.create(phone=phone, double_authentication=double_authentication,user=user)   
+            login(request, user) 
+            return redirect(to='inicio')
+    formularios = {
+        "user_form":user_form,
+        "extra_form":extra_form,
+    }       
+    return render(request, 'registro.html', formularios)
+
+def inicio(request):
+    return render(request, 'inicio.html')
+    
+
+
+def home(request):
+    return render(request, 'index.html')
 
 
 class GetUserView(APIView):
@@ -53,3 +93,6 @@ class RegisterView(APIView):
         except IntegrityError:
             return Response({}, status=HTTP_400_BAD_REQUEST)
         return Response({'user_pk': user.pk, 'token': token.key}, HTTP_201_CREATED)
+
+
+
