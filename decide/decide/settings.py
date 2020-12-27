@@ -151,6 +151,16 @@ USE_L10N = True
 USE_TZ = True
 
 
+# Email server
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_USE_TLS = True
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'projectdecidetest@gmail.com'
+EMAIL_HOST_PASSWORD = 'pruebadecide'
+
+
 TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
 
 # Static files (CSS, JavaScript, Images)
