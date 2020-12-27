@@ -1,8 +1,9 @@
+from django.http.response import Http404
 from rest_framework.response import Response
 from rest_framework.status import (
-        HTTP_201_CREATED,
+        HTTP_200_OK, HTTP_201_CREATED,
         HTTP_400_BAD_REQUEST,
-        HTTP_401_UNAUTHORIZED
+        HTTP_401_UNAUTHORIZED, HTTP_404_NOT_FOUND
 )
 from rest_framework.views import APIView
 from rest_framework.authtoken.models import Token
@@ -10,6 +11,7 @@ from django.contrib.auth.models import User
 from django.db import IntegrityError
 from django.shortcuts import get_object_or_404
 from django.core.exceptions import ObjectDoesNotExist
+from django.views.generic import TemplateView
 
 from .serializers import UserSerializer
 
@@ -60,6 +62,7 @@ class RegisterView(APIView):
             return Response({}, status=HTTP_400_BAD_REQUEST)
         return Response({'user_pk': user.pk, 'token': token.key}, HTTP_201_CREATED)
 
+from django.urls import reverse
 class EmailGenerateTokenView(APIView):
 
     def post(self, request):
@@ -80,23 +83,37 @@ class EmailGenerateTokenView(APIView):
             email_token.save()
 
             print(secret)
-            totp = pyotp.TOTP(secret, interval=5)
+            totp = pyotp.TOTP(secret, interval=3600)
             token = totp.now()
-            
-            send_mail_with_token(email, token)
+            link = request.build_absolute_uri(reverse("email-confirm-token", None, [str(user.pk), str(token)]))
+            send_mail_with_token(email, link)
         except BadHeaderError:
             return Response({}, status=HTTP_400_BAD_REQUEST)
 
-        return Response({}, status=HTTP_201_CREATED)
+        return Response({}, status=HTTP_200_OK)
 
-class EmailConfirmTokenView(APIView):
+class EmailConfirmTokenView(TemplateView):
+    template_name = "authentication/email/confirm-email-token.html"
 
-    def get(self, request):
-        token = request.data.get('token', '')
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        user_id = kwargs.get('userId', '')
+        if not user_id:
+            raise Http404
+
+        token = kwargs.get('token', '')
         if not token:
-            return Response({}, status=HTTP_400_BAD_REQUEST)
+            raise Http404
+        
+        email_token = EmailToken.objects.get(user__pk=user_id)
+        if not email_token:
+            raise Http404
+        
+        totp = pyotp.TOTP(email_token.secret, interval=3600)
+        if totp.verify(token):
+            session_token, created = Token.objects.get_or_create(user=email_token.user)
+            context['token'] = session_token.key
 
-
-
-
-        return Response({}, status=HTTP_201_CREATED)
+        email_token.delete()
+        return context

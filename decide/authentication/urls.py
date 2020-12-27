@@ -10,5 +10,5 @@ urlpatterns = [
     path('getuser/', GetUserView.as_view()),
     path('register/', RegisterView.as_view()),
     path('email-generate-token/', EmailGenerateTokenView.as_view()),
-    path('email-confirm-token/<token>/', EmailConfirmTokenView.as_view()),
+    path('email-confirm-token/<userId>/<token>/', EmailConfirmTokenView.as_view(), name="email-confirm-token"),
 ]
