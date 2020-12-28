@@ -1,8 +1,7 @@
 from django.conf import settings
 from django.db import models
-from django.conf import settings
 
-from django.db.models.fields import CharField
+from django.db.models.fields import CharField, URLField, DateTimeField
 
 # Create your models here.
 class EmailToken(models.Model):
@@ -11,7 +10,8 @@ class EmailToken(models.Model):
         on_delete=models.CASCADE, verbose_name="User"
     )
     secret = CharField(max_length=32, verbose_name="Secret Key")
-    created = models.DateTimeField("Created", auto_now_add=True)
+    callback = URLField(default="http://google.es", verbose_name="Callback")
+    created = DateTimeField("Created", auto_now_add=True)
 
     def __str__(self):
         return self.secret

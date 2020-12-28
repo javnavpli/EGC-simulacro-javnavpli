@@ -55,6 +55,7 @@
                 init() {
                     document.cookie = 'decide='+this.token+'; path=/';
                     this.getUser();
+                    window.location.href = '{{callback}}';
                 },
                 postData(url, data) {
                     // Default options are marked with *

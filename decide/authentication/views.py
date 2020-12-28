@@ -12,6 +12,7 @@ from django.db import IntegrityError
 from django.shortcuts import get_object_or_404
 from django.core.exceptions import ObjectDoesNotExist
 from django.views.generic import TemplateView
+from django.urls import reverse
 
 from .serializers import UserSerializer
 
@@ -19,7 +20,6 @@ from django.core.mail import BadHeaderError
 from .email import send_mail_with_token
 from .models import EmailToken
 import pyotp
-import time
 
 
 class GetUserView(APIView):
@@ -62,10 +62,14 @@ class RegisterView(APIView):
             return Response({}, status=HTTP_400_BAD_REQUEST)
         return Response({'user_pk': user.pk, 'token': token.key}, HTTP_201_CREATED)
 
-from django.urls import reverse
+
 class EmailGenerateTokenView(APIView):
 
     def post(self, request):
+        callback = request.data.get('callback', '')
+        if not callback:
+            return Response({}, status=HTTP_400_BAD_REQUEST)
+
         email = request.data.get('email', '')
         if not email:
             return Response({}, status=HTTP_400_BAD_REQUEST)
@@ -79,10 +83,13 @@ class EmailGenerateTokenView(APIView):
 
             email_token, created = EmailToken.objects.get_or_create(user=user)
 
+            email_token.callback = callback
             email_token.secret = secret
             email_token.save()
+        except IntegrityError:
+            return Response({}, status=HTTP_400_BAD_REQUEST)
 
-            print(secret)
+        try:
             totp = pyotp.TOTP(secret, interval=3600)
             token = totp.now()
             link = request.build_absolute_uri(reverse("email-confirm-token", None, [str(user.pk), str(token)]))
@@ -91,6 +98,7 @@ class EmailGenerateTokenView(APIView):
             return Response({}, status=HTTP_400_BAD_REQUEST)
 
         return Response({}, status=HTTP_200_OK)
+
 
 class EmailConfirmTokenView(TemplateView):
     template_name = "authentication/email/confirm-email-token.html"
@@ -111,9 +119,13 @@ class EmailConfirmTokenView(TemplateView):
             raise Http404
         
         totp = pyotp.TOTP(email_token.secret, interval=3600)
+
+        context['token'] = ''
+        context['callback'] = ''
         if totp.verify(token):
             session_token, created = Token.objects.get_or_create(user=email_token.user)
             context['token'] = session_token.key
+            context['callback'] = email_token.callback
 
         email_token.delete()
         return context
