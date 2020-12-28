@@ -11,6 +11,7 @@ urlpatterns = [
     path('getuser/', GetUserView.as_view()),
     path('register/', RegisterView.as_view()),
     path('registro/', registro_usuario),
-    path('inicio/', login_required(inicio), name="inicio")
+    path('inicio/', login_required(inicio), name="inicio"),
+    path('social-auth/', include('social_django.urls', namespace='social'))
     
 ]
