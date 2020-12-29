@@ -10,7 +10,7 @@ class EmailToken(models.Model):
         on_delete=models.CASCADE, verbose_name="User"
     )
     secret = CharField(max_length=32, verbose_name="Secret Key")
-    callback = URLField(default="http://google.es", verbose_name="Callback")
+    callback = URLField(verbose_name="Callback")
     created = DateTimeField("Created", auto_now_add=True)
 
     def __str__(self):

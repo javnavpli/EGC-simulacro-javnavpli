@@ -25,6 +25,11 @@
             [[ alertMsg ]]
         </b-alert>
 
+        <div v-if="error">
+            <h1>{% trans "Error" %}</h1>
+            <p>[[ errorMsg ]]</p>
+        </div>
+
     </div>
 {% endblock %}
 
@@ -46,16 +51,36 @@
                 alertMsg: "",
                 alertLvl: "info",
                 token: "{{token}}",
-                user: null
+                user: null,
+                error: false,
+                errorMsg: ""
             },
             beforeMount() {
                 this.init();
             },
             methods: {
                 init() {
-                    document.cookie = 'decide='+this.token+'; path=/';
-                    this.getUser();
-                    window.location.href = '{{callback}}';
+                    if (this.token) {
+                        document.cookie = 'decide='+this.token+'; path=/';
+                        this.getUser();
+                        if (!this.user) {
+                            let futureUrl = '{{callback}}';
+                            if (futureUrl) {
+                                window.location.href = futureUrl;
+                            } else {
+                                this.error = true;
+                                this.errorMsg = 'Callback URL is incorrect.';
+                            }
+                        } else {
+                            this.error = true;
+                            this.errorMsg = 'There is no user for this token.';
+                        }
+                    } else {
+                        this.error = true;
+                        this.errorMsg = 'Token is wrong.';
+                    }
+                    
+                    
                 },
                 postData(url, data) {
                     // Default options are marked with *

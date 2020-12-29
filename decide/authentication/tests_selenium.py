@@ -1,0 +1,178 @@
+from datetime import datetime
+
+from django.test.utils import freeze_time
+from rest_framework.authtoken.models import Token
+from authentication.models import EmailToken
+from voting.models import Question, Voting
+from base import mods
+from django.contrib.auth.models import User
+from django.core import mail
+from django.utils import timezone
+from django.test import TestCase
+from django.contrib.staticfiles.testing import StaticLiveServerTestCase
+
+from selenium import webdriver
+from selenium.webdriver.support import expected_conditions
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.keys import Keys
+
+from base.tests import BaseTestCase
+from freezegun import freeze_time
+
+import re
+
+class AdminTestCase(StaticLiveServerTestCase):
+
+    def setUp(self):
+        # Load base test functionality for decide
+        self.base = BaseTestCase()
+        self.base.setUp()
+
+        options = webdriver.ChromeOptions()
+        options.headless = True
+        self.driver = webdriver.Chrome(options=options)
+
+        super().setUp()
+
+    def tearDown(self):
+        super().tearDown()
+        self.driver.quit()
+
+        self.base.tearDown()
+
+    def test_simpleCorrectLogin(self):
+        self.driver.get(f'{self.live_server_url}/admin/')
+        self.driver.find_element_by_id('id_username').send_keys("admin")
+        self.driver.find_element_by_id('id_password').send_keys("qwerty", Keys.ENTER)
+
+        # print(self.driver.current_url)
+        # In case of a correct loging, a element with id 'user-tools' is shown in the upper right part
+        self.assertTrue(len(self.driver.find_elements_by_id('user-tools')) == 1)
+
+    def test_simpleWrongLogin(self):
+        self.driver.get(f'{self.live_server_url}/admin/')
+        self.driver.find_element_by_id('id_username').send_keys("WRONG")
+        self.driver.find_element_by_id('id_password').send_keys("WRONG")
+        self.driver.find_element_by_id('login-form').submit()
+        
+        # In case a incorrect login, a div with class 'errornote' is shown in red!
+        self.assertTrue(len(self.driver.find_elements_by_class_name('errornote')) == 1)
+
+
+class EmailAuthRedirectCase(StaticLiveServerTestCase):
+    
+    @freeze_time('2020-10-10 03:00:00')
+    def prepareEmailToken(self):
+        self.user_with_email = User(username='userWithEmail')
+        self.user_with_email.set_password('qwerty')
+        self.user_with_email.email = 'userWithEmail@example.com'
+        self.user_with_email.save()
+
+        data = {'email': self.user_with_email.email, 'callback': 'http://dominio.prueba/callback'}
+        response = mods.post('authentication/email-generate-token', json=data, response=True)
+        self.assertEqual(response.status_code, 200)
+
+        htmlText = mail.outbox[0].alternatives[0][0]
+        self.link = re.search(r'href="http://testserver/?([^\'" >]+)', htmlText).group(1)
+
+    def setUp(self):
+        # Load base test functionality for decide
+        self.base = BaseTestCase()
+        self.base.setUp()
+
+        self.prepareEmailToken()
+
+        options = webdriver.ChromeOptions()
+        options.headless = False
+        self.driver = webdriver.Chrome(options=options)
+
+
+        super().setUp()
+
+    def tearDown(self):
+        super().tearDown()
+        self.driver.quit()
+
+        self.base.tearDown()
+
+    @freeze_time('2020-10-10 03:15:00')
+    def test_confirmEmailTokenAfterStart(self):
+        self.driver.get(f'{self.live_server_url}/{self.link}')
+
+        self.assertEqual(self.driver.current_url, 'http://dominio.prueba/callback')
+        self.assertEqual(EmailToken.objects.filter(user__username='voter1').count(), 0)
+
+    @freeze_time('2020-10-10 03:59:00')
+    def test_confirmEmailTokenBeforeEnd(self):
+        self.driver.get(f'{self.live_server_url}/{self.link}')
+
+        self.assertEqual(self.driver.current_url, 'http://dominio.prueba/callback')
+        self.assertEqual(EmailToken.objects.filter(user__username='voter1').count(), 0)
+
+    @freeze_time('2020-10-10 04:01:00')
+    def test_confirmEmailTokenAfterEnd(self):
+        self.driver.get(f'{self.live_server_url}/{self.link}')
+        
+        self.assertEqual(self.driver.find_element(By.XPATH, "//div/h1").text, "Error")
+        self.assertEqual(self.driver.find_element(By.XPATH, "//div/p").text, "Token is wrong.")
+        self.assertEqual(EmailToken.objects.filter(user__username='voter1').count(), 0)
+
+    @freeze_time('2020-10-10 03:30:00')
+    def test_confirmEmailTokenInvalidUserId(self):
+        self.driver.get(f'{self.live_server_url}/authentication/email-confirm-token/11111/222222/')
+
+        self.assertEqual(self.driver.find_element(By.XPATH, "//div/h1").text, "Error")
+        self.assertEqual(self.driver.find_element(By.XPATH, "//div/p").text, "Token is wrong.")
+        self.assertEqual(EmailToken.objects.filter(user__username='voter1').count(), 0)
+
+    @freeze_time('2020-10-10 03:30:00')
+    def test_confirmEmailTokenInvalidToken(self):
+        self.driver.get(f'{self.live_server_url}/authentication/email-confirm-token/{self.user_with_email.pk}/111111/')
+
+        self.assertEqual(self.driver.find_element(By.XPATH, "//div/h1").text, "Error")
+        self.assertEqual(self.driver.find_element(By.XPATH, "//div/p").text, "Token is wrong.")
+        self.assertEqual(EmailToken.objects.filter(user__username='voter1').count(), 0)
+
+class BoothEmailAuthCase(StaticLiveServerTestCase):
+
+    def setUp(self):
+        # Load base test functionality for decide
+        self.base = BaseTestCase()
+        self.base.setUp()
+
+        usuer_with_email = User(username='userWithEmail')
+        usuer_with_email.set_password('qwerty')
+        usuer_with_email.email = 'userWithEmail@example.com'
+        usuer_with_email.save()
+
+        self.question = Question(desc='qwerty')
+        self.question.save()
+        self.voting = Voting(pk=5001,
+                             name='voting example',
+                             link="prueba",
+                             question=self.question,
+                             start_date=timezone.now(),
+        )
+        self.voting.save()
+        
+        options = webdriver.ChromeOptions()
+        options.headless = True
+        self.driver = webdriver.Chrome(options=options)
+
+        super().setUp()
+
+    def tearDown(self):
+        super().tearDown()
+        self.driver.quit()
+
+        self.base.tearDown()
+
+    def test_boothEmailLogin(self):
+        self.driver.get(f"{self.live_server_url}/booth/{self.voting.pk}/")
+        self.driver.find_element(By.CSS_SELECTOR, ".custom-control:nth-child(2) span").click()
+        self.driver.find_element(By.ID, "email").send_keys('userWithEmail@example.com')
+        self.driver.find_element(By.ID, "email").click()
+        
+        self.driver.find_element(By.CSS_SELECTOR, ".btn").click()
