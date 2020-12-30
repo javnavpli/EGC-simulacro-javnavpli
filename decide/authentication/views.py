@@ -2,7 +2,8 @@ from rest_framework.response import Response
 from rest_framework.status import (
         HTTP_201_CREATED,
         HTTP_400_BAD_REQUEST,
-        HTTP_401_UNAUTHORIZED
+        HTTP_401_UNAUTHORIZED,
+        HTTP_200_OK
 )
 from rest_framework.views import APIView
 from rest_framework.authtoken.models import Token
@@ -18,7 +19,8 @@ from django.contrib.auth.forms import UserCreationForm
 from django.template import RequestContext
 from django.contrib import messages
 from django.contrib.auth import login, authenticate
-
+from django.contrib.auth import logout as auth_logout
+from rest_framework.decorators import api_view
 
 from .forms import UserForm, ExtraForm
 from .models import Extra
@@ -69,7 +71,6 @@ class LogoutView(APIView):
             tk.delete()
         except ObjectDoesNotExist:
             pass
-
         return Response({})
 
 
@@ -95,4 +96,29 @@ class RegisterView(APIView):
         return Response({'user_pk': user.pk, 'token': token.key}, HTTP_201_CREATED)
 
 
+def github_redirect(request):
+    '''
+    context = {voting_id":request.GET.get('next', None),
+        "
+        "user":request.user
+    }'''
+    user = request.user
+    session_token, created = Token.objects.get_or_create(user=user)
+    host = request.get_host()
+    #context['token'] = session_token.key
+    #context['callback'] = host +'/booth/' + str(request.GET.get('next', None))
+    scheme = request.is_secure() and "https" or "http"
+    base_url = f'{scheme}://{request.get_host()}'
+    context = {
+        "token":session_token.key,
+        "callback":base_url+'/booth/' + str(request.GET.get('next', None)),
+        "host":host,
+    }
+    
+    return render(request, 'github-redirect.html',context)
+
+@api_view(['GET'])
+def logoutGitHub(request):
+    auth_logout(request)
+    return Response({}, status=HTTP_200_OK)
 

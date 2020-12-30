@@ -18,7 +18,10 @@
                     <b-nav-item href="#" v-on:click="decideLogout">
                         {% trans "logout" %}
                     </b-nav-item>
-                </b-navbar-nav>
+                    <b-nav-item v-on:click="decideLogoutGithub" v-if="!signup">
+                        {% trans "logout GitHub" %}
+                    </b-nav-item>
+                
         </b-navbar>
 
         <b-alert :variant="alertLvl" dismissible v-model="alertShow">
@@ -65,11 +68,16 @@
                 </b-button>
             </div>
         </div>
+        
+        <ul>
+            
+            <li v-if="signup"><a :href="linkGithub">{% trans "Iniciar sesión con Github" %}</a></li>
+            
+        </ul>
+        
     </div>
+   
 
-    <ul>
-        <li><a href="{% url 'social:begin' 'github' %}">Iniciar sesión con Github</a> </li>
-   </ul>
 {% endblock %}
 
 {% block extrabody %}
@@ -88,7 +96,8 @@
     <script src="https://unpkg.com/vue"></script>
     <script src="https://unpkg.com/babel-polyfill@latest/dist/polyfill.min.js"></script>
     <script src="https://unpkg.com/bootstrap-vue@latest/dist/bootstrap-vue.js"></script>
-
+    
+    
     <script>
         var voting = {{voting|safe}};
         var app = new Vue({
@@ -108,11 +117,13 @@
                     username: '',
                     password: ''
                 },
+                linkGithub: "{% url 'social:begin' 'github' %}?next=" + voting.id,
                 bigpk: {
                     p: BigInt.fromJSONObject(voting.pub_key.p.toString()),
                     g: BigInt.fromJSONObject(voting.pub_key.g.toString()),
                     y: BigInt.fromJSONObject(voting.pub_key.y.toString()),
                 }
+                
             },
             beforeMount() {
                 this.init()
@@ -183,6 +194,22 @@
                     document.cookie = 'decide=;';
                     this.signup = true;
                 },
+                decideLogoutGithub(evt) {
+                    evt.preventDefault();
+                    var data = {token: this.token};
+                    this.postData("{% url "gateway" "authentication" "/logout/" %}", data);
+                    var xmlHttp = new XMLHttpRequest();
+                    xmlHttp.open( "GET", '/authentication/logoutGithub/', false );
+                    xmlHttp.send( null );
+                    this.token = null;
+                    this.user = null;
+                    document.cookie = 'decide=;';
+                    this.signup = true;
+                    
+
+                },
+               
+               
                 decideEncrypt() {
                     var bigmsg = BigInt.fromJSONObject(this.selected.toString());
                     var cipher = ElGamal.encrypt(this.bigpk, bigmsg);
