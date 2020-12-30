@@ -25,7 +25,7 @@ from rest_framework.decorators import api_view
 from .forms import UserForm, ExtraForm
 from .models import Extra
 
-def registro_usuario(request):
+def registro_usuario(request, backend='django.contrib.auth.backends.ModelBackend'):
     user_form = UserForm()
     extra_form = ExtraForm()
     if request.method == 'POST':
@@ -39,7 +39,7 @@ def registro_usuario(request):
             double_authentication = extra_form.cleaned_data["double_authentication"]
             user = User.objects.get(username=username)
             Extra.objects.create(phone=phone, double_authentication=double_authentication,user=user)   
-            login(request, user) 
+            login(request, user, backend='django.contrib.auth.backends.ModelBackend') 
             return redirect(to='inicio')
     formularios = {
         "user_form":user_form,
