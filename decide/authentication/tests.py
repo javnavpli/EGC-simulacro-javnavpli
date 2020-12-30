@@ -19,10 +19,10 @@ class AuthTestCase(APITestCase):
     def setUp(self):
         self.client = APIClient()
         mods.mock_query(self.client)
-        u = User(username='voter1')
-        u.set_password('123')
-        u.email = 'voter1@gmail.com'
-        u.save()
+        self.u = User(username='voter1')
+        self.u.set_password('123')
+        self.u.email = 'voter1@gmail.com'
+        self.u.save()
 
         u2 = User(username='admin')
         u2.set_password('admin')
@@ -55,7 +55,7 @@ class AuthTestCase(APITestCase):
         self.assertEqual(response.status_code, 200)
 
         user = response.json()
-        self.assertEqual(user['id'], 1)
+        self.assertEqual(user['id'], self.u.pk)
         self.assertEqual(user['username'], 'voter1')
 
     def test_getuser_invented_token(self):
