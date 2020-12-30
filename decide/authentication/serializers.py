@@ -12,4 +12,4 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
 class ExtraSerializar(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Extra
-        fields = ('id', 'phone', 'double_authentication', 'user')
+        fields = ('id', 'phone', 'totp_code', 'user')
