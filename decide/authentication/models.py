@@ -1,10 +1,10 @@
 from django.conf import settings
 from django.db import models
 
-from django.db.models.fields import CharField, URLField, DateTimeField
+from django.db.models.fields import CharField, EmailField, URLField, DateTimeField
 
 # Create your models here.
-class EmailToken(models.Model):
+class EmailOTPCode(models.Model):
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL, unique=True,
         on_delete=models.CASCADE, verbose_name="User"

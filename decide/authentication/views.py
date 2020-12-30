@@ -1,3 +1,5 @@
+from rest_framework import parsers, renderers
+from authentication.models import EmailOTPCode
 from django.http.response import Http404
 from rest_framework.response import Response
 from rest_framework.status import (
@@ -15,11 +17,10 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.views.generic import TemplateView
 from django.urls import reverse
 
-from .serializers import UserSerializer
+from .serializers import EmailOTPCodeSerializer, UserSerializer
 
 from django.core.mail import BadHeaderError
 from .email import send_mail_with_token
-from .models import EmailToken
 import pyotp
 
 
@@ -65,23 +66,25 @@ class RegisterView(APIView):
 
 
 class EmailGenerateTokenView(APIView):
+    parser_classes = (parsers.FormParser, parsers.MultiPartParser, parsers.JSONParser,)
+    renderer_classes = (renderers.JSONRenderer,)
+    serializer_class = EmailOTPCodeSerializer
 
     def post(self, request):
-        callback = request.data.get('callback', '')
-        email = request.data.get('email', '')
+        serializer = self.serializer_class(data=request.data, context={'request': request})
 
-        if not (email and callback):
-            return Response({}, status=HTTP_400_BAD_REQUEST)
+        serializer.is_valid(raise_exception=True)
+        email = serializer.validated_data['email']
+        callback = serializer.validated_data['callback']
 
         user = get_object_or_404(User, email=email)
+        email_otp_code, created = EmailOTPCode.objects.get_or_create(user=user)
 
         secret = pyotp.random_base32()
 
-        email_token, created = EmailToken.objects.get_or_create(user=user)
-
-        email_token.callback = callback
-        email_token.secret = secret
-        email_token.save()
+        email_otp_code.callback = callback
+        email_otp_code.secret = secret
+        email_otp_code.save()
 
         try:
             totp = pyotp.TOTP(secret, interval=3600)
@@ -107,15 +110,18 @@ class EmailConfirmTokenView(TemplateView):
         context['callback'] = ''
 
         if user_id:
-            email_token = EmailToken.objects.get(user__pk=user_id)
-            if email_token:
-                totp = pyotp.TOTP(email_token.secret, interval=3600)
+            try:
+                email_otp_code = EmailOTPCode.objects.get(user__pk=user_id)
+                if email_otp_code:
+                    totp = pyotp.TOTP(email_otp_code.secret, interval=3600)
 
-                if totp.verify(token):
-                    session_token, created = Token.objects.get_or_create(user=email_token.user)
-                    context['token'] = session_token.key
-                    context['callback'] = email_token.callback
+                    if totp.verify(token):
+                        session_token, created = Token.objects.get_or_create(user=email_otp_code.user)
+                        context['token'] = session_token.key
+                        context['callback'] = email_otp_code.callback
 
-                email_token.delete()
-
+                email_otp_code.delete()
+            except ObjectDoesNotExist:
+                pass
+            
         return context

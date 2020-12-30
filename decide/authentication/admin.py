@@ -1,6 +1,5 @@
+from authentication.models import EmailOTPCode
 from django.contrib import admin
 
-from .models import EmailToken
-
 # Register your models here.
-admin.site.register(EmailToken)
+admin.site.register(EmailOTPCode)

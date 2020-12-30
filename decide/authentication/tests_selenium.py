@@ -1,8 +1,7 @@
+from base.models import Auth
 from datetime import datetime
 
-from django.test.utils import freeze_time
 from rest_framework.authtoken.models import Token
-from authentication.models import EmailToken
 from voting.models import Question, Voting
 from base import mods
 from django.contrib.auth.models import User
@@ -85,7 +84,7 @@ class EmailAuthRedirectCase(StaticLiveServerTestCase):
         self.prepareEmailToken()
 
         options = webdriver.ChromeOptions()
-        options.headless = False
+        options.headless = True
         self.driver = webdriver.Chrome(options=options)
 
 
@@ -102,14 +101,12 @@ class EmailAuthRedirectCase(StaticLiveServerTestCase):
         self.driver.get(f'{self.live_server_url}/{self.link}')
 
         self.assertEqual(self.driver.current_url, 'http://dominio.prueba/callback')
-        self.assertEqual(EmailToken.objects.filter(user__username='voter1').count(), 0)
 
     @freeze_time('2020-10-10 03:59:00')
     def test_confirmEmailTokenBeforeEnd(self):
         self.driver.get(f'{self.live_server_url}/{self.link}')
 
         self.assertEqual(self.driver.current_url, 'http://dominio.prueba/callback')
-        self.assertEqual(EmailToken.objects.filter(user__username='voter1').count(), 0)
 
     @freeze_time('2020-10-10 04:01:00')
     def test_confirmEmailTokenAfterEnd(self):
@@ -117,7 +114,6 @@ class EmailAuthRedirectCase(StaticLiveServerTestCase):
         
         self.assertEqual(self.driver.find_element(By.XPATH, "//div/h1").text, "Error")
         self.assertEqual(self.driver.find_element(By.XPATH, "//div/p").text, "Token is wrong.")
-        self.assertEqual(EmailToken.objects.filter(user__username='voter1').count(), 0)
 
     @freeze_time('2020-10-10 03:30:00')
     def test_confirmEmailTokenInvalidUserId(self):
@@ -125,7 +121,6 @@ class EmailAuthRedirectCase(StaticLiveServerTestCase):
 
         self.assertEqual(self.driver.find_element(By.XPATH, "//div/h1").text, "Error")
         self.assertEqual(self.driver.find_element(By.XPATH, "//div/p").text, "Token is wrong.")
-        self.assertEqual(EmailToken.objects.filter(user__username='voter1').count(), 0)
 
     @freeze_time('2020-10-10 03:30:00')
     def test_confirmEmailTokenInvalidToken(self):
@@ -133,46 +128,3 @@ class EmailAuthRedirectCase(StaticLiveServerTestCase):
 
         self.assertEqual(self.driver.find_element(By.XPATH, "//div/h1").text, "Error")
         self.assertEqual(self.driver.find_element(By.XPATH, "//div/p").text, "Token is wrong.")
-        self.assertEqual(EmailToken.objects.filter(user__username='voter1').count(), 0)
-
-class BoothEmailAuthCase(StaticLiveServerTestCase):
-
-    def setUp(self):
-        # Load base test functionality for decide
-        self.base = BaseTestCase()
-        self.base.setUp()
-
-        usuer_with_email = User(username='userWithEmail')
-        usuer_with_email.set_password('qwerty')
-        usuer_with_email.email = 'userWithEmail@example.com'
-        usuer_with_email.save()
-
-        self.question = Question(desc='qwerty')
-        self.question.save()
-        self.voting = Voting(pk=5001,
-                             name='voting example',
-                             link="prueba",
-                             question=self.question,
-                             start_date=timezone.now(),
-        )
-        self.voting.save()
-        
-        options = webdriver.ChromeOptions()
-        options.headless = True
-        self.driver = webdriver.Chrome(options=options)
-
-        super().setUp()
-
-    def tearDown(self):
-        super().tearDown()
-        self.driver.quit()
-
-        self.base.tearDown()
-
-    def test_boothEmailLogin(self):
-        self.driver.get(f"{self.live_server_url}/booth/{self.voting.pk}/")
-        self.driver.find_element(By.CSS_SELECTOR, ".custom-control:nth-child(2) span").click()
-        self.driver.find_element(By.ID, "email").send_keys('userWithEmail@example.com')
-        self.driver.find_element(By.ID, "email").click()
-        
-        self.driver.find_element(By.CSS_SELECTOR, ".btn").click()
