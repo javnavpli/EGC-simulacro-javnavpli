@@ -18,30 +18,40 @@ from django.contrib.auth.forms import UserCreationForm
 from django.template import RequestContext
 from django.contrib import messages
 from django.contrib.auth import login, authenticate
+import pyotp
 
 
 from .forms import UserForm, ExtraForm
 from .models import Extra
 
 def registro_usuario(request):
+    if request.POST.get("base32secret"):
+        base32secret = request.POST.get("base32secret")
+    else:
+        base32secret = pyotp.random_base32()
+    url_totp = pyotp.totp.TOTP(base32secret).provisioning_uri(issuer_name="Decide App")
+
     user_form = UserForm()
-    extra_form = ExtraForm()
+    extra_form = ExtraForm(initial={'base32secret':base32secret})
+
     if request.method == 'POST':
         extra_form = ExtraForm(request.POST,"extra_form")
         user_form = UserForm(request.POST,"user_form")
-
         if extra_form.is_valid() and user_form.is_valid():
             user_form.save()
             username = user_form.cleaned_data["username"]
             phone = extra_form.cleaned_data["phone"]
-            double_authentication = extra_form.cleaned_data["double_authentication"]
+            base32secret = extra_form.cleaned_data["base32secret"]
             user = User.objects.get(username=username)
-            Extra.objects.create(phone=phone, double_authentication=double_authentication,user=user)   
+            Extra.objects.create(phone=phone, totp_code=base32secret, user=user)   
             login(request, user) 
             return redirect(to='inicio')
+            
     formularios = {
         "user_form":user_form,
         "extra_form":extra_form,
+        "url_totp":url_totp,
+        "base32secret":base32secret,
     }       
     return render(request, 'registro.html', formularios)
 
