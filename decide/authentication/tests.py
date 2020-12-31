@@ -9,6 +9,8 @@ from base import mods
 
 from .forms import UserForm, ExtraForm
 from .models import Extra
+from django.test import Client
+from django.test.client import RequestFactory
 
 class AuthTestCase(APITestCase):
 
@@ -213,4 +215,8 @@ class ExtraModel(TestCase):
         self.assertEqual(extra.phone, "123456789")
         self.assertEqual(extra.double_authentication, True)
         self.assertEqual(extra.user, u)
+
+
     
+    
+

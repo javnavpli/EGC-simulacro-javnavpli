@@ -38,7 +38,8 @@ def registro_usuario(request, backend='django.contrib.auth.backends.ModelBackend
             phone = extra_form.cleaned_data["phone"]
             double_authentication = extra_form.cleaned_data["double_authentication"]
             user = User.objects.get(username=username)
-            Extra.objects.create(phone=phone, double_authentication=double_authentication,user=user)   
+            Extra.objects.create(phone=phone, double_authentication=double_authentication,user=user)  
+            Token.objects.get_or_create(user=user) 
             login(request, user, backend='django.contrib.auth.backends.ModelBackend') 
             return redirect(to='inicio')
     formularios = {
@@ -95,18 +96,11 @@ class RegisterView(APIView):
             return Response({}, status=HTTP_400_BAD_REQUEST)
         return Response({'user_pk': user.pk, 'token': token.key}, HTTP_201_CREATED)
 
-
 def github_redirect(request):
-    '''
-    context = {voting_id":request.GET.get('next', None),
-        "
-        "user":request.user
-    }'''
+
     user = request.user
     session_token, created = Token.objects.get_or_create(user=user)
     host = request.get_host()
-    #context['token'] = session_token.key
-    #context['callback'] = host +'/booth/' + str(request.GET.get('next', None))
     scheme = request.is_secure() and "https" or "http"
     base_url = f'{scheme}://{request.get_host()}'
     context = {
@@ -114,11 +108,14 @@ def github_redirect(request):
         "callback":base_url+'/booth/' + str(request.GET.get('next', None)),
         "host":host,
     }
-    
     return render(request, 'github-redirect.html',context)
 
 @api_view(['GET'])
 def logoutGitHub(request):
     auth_logout(request)
-    return Response({}, status=HTTP_200_OK)
+
+    if request.user.is_authenticated:
+        return Response({}, status=HTTP_400_BAD_REQUEST)
+    else:
+        return Response({}, status=HTTP_200_OK)
 
