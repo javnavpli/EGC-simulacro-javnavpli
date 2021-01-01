@@ -564,3 +564,106 @@ class VotingViewsTestCase(StaticLiveServerTestCase):
         dropdown.find_element(By.XPATH, "//option[. = 'Tally']").click()
         self.driver.find_element(By.CSS_SELECTOR, "option:nth-child(5)").click()
         self.driver.find_element(By.NAME, "index").click()
+
+    def test_negative_order_number(self):
+        User.objects.create_superuser('superuser', 'superuser@decide.com', 'superuser')
+        #Proceso para loguearse como administrador
+        self.driver.get(f'{self.live_server_url}/admin/')
+        self.driver.find_element_by_id('id_username').send_keys("superuser")
+        self.driver.find_element_by_id('id_password').send_keys("superuser", Keys.ENTER)
+        #Proceso para crear una votación
+        self.assertTrue(len(self.driver.find_elements_by_id('user-tools')) == 1)
+        time.sleep(1)
+        self.driver.find_element(By.LINK_TEXT, "Votings").click()
+        time.sleep(1)
+        assert self.driver.find_element(By.CSS_SELECTOR, "#content > h1").text == "Select voting to change"
+        self.driver.find_element(By.CSS_SELECTOR, ".addlink").click()
+        self.driver.find_element_by_id('id_name').send_keys("Ordering voting test")
+        self.driver.find_element_by_id('id_desc').send_keys("Ordering voting test desc")
+        self.driver.find_element_by_id('id_link').send_keys("seleniumtest")
+        self.driver.find_element_by_id('id_question').click()
+        self.vars["window_handles"] = self.driver.window_handles
+        #Proceso para añadir una pregunta y sus opciones
+        self.driver.find_element(By.CSS_SELECTOR, "#add_id_question > img").click()
+        self.vars["win8328"] = self.wait_for_window(2000)
+        self.vars["root"] = self.driver.current_window_handle
+        self.driver.switch_to.window(self.vars["win8328"])
+        self.driver.find_element_by_id("id_desc").click()
+        self.driver.find_element_by_id("id_desc").clear()
+        self.driver.find_element_by_id("id_desc").send_keys("Descripcion de la pregunta")
+        self.driver.find_element_by_id("id_order_options-0-option").click()
+        self.driver.find_element_by_id("id_order_options-0-option").clear()
+        self.driver.find_element_by_id("id_order_options-0-option").send_keys("Primera opcion")
+        self.driver.find_element_by_id("id_order_options-0-order_number").click()
+        self.driver.find_element_by_id("id_order_options-0-order_number").clear()
+        self.driver.find_element_by_id("id_order_options-0-order_number").send_keys("1")
+        self.driver.find_element_by_id("id_order_options-1-option").click()
+        self.driver.find_element_by_id("id_order_options-1-option").clear()
+        self.driver.find_element_by_id("id_order_options-1-option").send_keys("Opcion negativa")
+        self.driver.find_element_by_id("id_order_options-1-order_number").click()
+        self.driver.find_element_by_id("id_order_options-1-order_number").clear()
+        self.driver.find_element_by_id("id_order_options-1-order_number").send_keys("-1")
+        self.driver.find_element_by_xpath("//tr[@id='order_options-1']/td[2]").click()
+        self.driver.find_element_by_name("_save").click()
+        self.assertEqual("Please correct the error below.", self.driver.find_element_by_xpath("//form[@id='question_form']/div/p").text)
+        self.assertEqual("Ensure this value is greater than or equal to 0.", self.driver.find_element_by_xpath("//tr[@id='order_options-1']/td[2]/ul/li").text)
+
+    def test_add_order_number_to_question(self):
+        User.objects.create_superuser('superuser', 'superuser@decide.com', 'superuser')
+        #Proceso para loguearse como administrador
+        self.driver.get(f'{self.live_server_url}/admin/')
+        self.driver.find_element_by_id('id_username').send_keys("superuser")
+        self.driver.find_element_by_id('id_password').send_keys("superuser", Keys.ENTER)
+        #Proceso para crear una votación
+        self.assertTrue(len(self.driver.find_elements_by_id('user-tools')) == 1)
+        time.sleep(1)
+        self.driver.find_element(By.LINK_TEXT, "Votings").click()
+        time.sleep(1)
+        assert self.driver.find_element(By.CSS_SELECTOR, "#content > h1").text == "Select voting to change"
+        self.driver.find_element(By.CSS_SELECTOR, ".addlink").click()
+        self.driver.find_element_by_id('id_name').send_keys("Ordering voting test")
+        self.driver.find_element_by_id('id_desc').send_keys("Ordering voting test desc")
+        self.driver.find_element_by_id('id_link').send_keys("seleniumtest")
+        self.driver.find_element_by_id('id_question').click()
+        self.vars["window_handles"] = self.driver.window_handles
+        #Proceso para añadir una pregunta y sus opciones
+        self.driver.find_element(By.CSS_SELECTOR, "#add_id_question > img").click()
+        self.vars["win8328"] = self.wait_for_window(2000)
+        self.vars["root"] = self.driver.current_window_handle
+        self.driver.switch_to.window(self.vars["win8328"])
+        self.driver.find_element_by_id("id_desc").click()
+        self.driver.find_element_by_id("id_desc").clear()
+        self.driver.find_element_by_id("id_desc").send_keys("Descripcion de la pregunta")
+        self.driver.find_element_by_id("id_order_options-0-option").click()
+        self.driver.find_element_by_id("id_order_options-0-option").clear()
+        self.driver.find_element_by_id("id_order_options-0-option").send_keys("Primera opcion")
+        self.driver.find_element_by_id("id_order_options-0-order_number").click()
+        self.driver.find_element_by_id("id_order_options-0-order_number").clear()
+        self.driver.find_element_by_id("id_order_options-0-order_number").send_keys("1")
+        self.driver.find_element_by_id("id_order_options-1-option").click()
+        self.driver.find_element_by_id("id_order_options-1-option").clear()
+        self.driver.find_element_by_id("id_order_options-1-option").send_keys("Segunda opcion")
+        self.driver.find_element_by_id("id_order_options-1-order_number").click()
+        self.driver.find_element_by_id("id_order_options-1-order_number").clear()
+        self.driver.find_element_by_id("id_order_options-1-order_number").send_keys("2")
+        self.driver.find_element_by_name("_save").click()
+        self.vars["window_handles"] = self.driver.window_handles
+        self.driver.switch_to.window(self.vars["root"])
+        self.driver.find_element_by_xpath("//img[@alt='Change']").click()
+        self.vars["win8328"] = self.wait_for_window(2000)
+        self.vars["root"] = self.driver.current_window_handle
+        self.driver.switch_to.window(self.vars["win8328"])
+        self.driver.find_element_by_id("id_order_options-2-order_number").click()
+        self.driver.find_element_by_id("id_order_options-2-order_number").clear()
+        self.driver.find_element_by_id("id_order_options-2-order_number").send_keys("3")
+        self.driver.find_element_by_id("id_order_options-2-option").click()
+        self.driver.find_element_by_id("id_order_options-2-option").clear()
+        self.driver.find_element_by_id("id_order_options-2-option").send_keys(u"Opcion añadida")
+        self.driver.find_element_by_name("_save").click()
+        self.vars["window_handles"] = self.driver.window_handles
+        self.driver.switch_to.window(self.vars["root"])
+        self.driver.find_element_by_xpath("//img[@alt='Change']").click()
+        self.vars["win8328"] = self.wait_for_window(2000)
+        self.vars["root"] = self.driver.current_window_handle
+        self.driver.switch_to.window(self.vars["win8328"])
+        self.assertEqual(u"Opcion añadida", self.driver.find_element_by_id("id_order_options-2-option").text)
