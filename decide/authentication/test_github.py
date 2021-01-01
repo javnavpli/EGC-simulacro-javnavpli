@@ -76,8 +76,9 @@ class Github(StaticLiveServerTestCase):
         self.driver.find_element(By.ID, "password").send_keys("pruebadecide11")
         self.driver.find_element(By.NAME, "commit").click()
         #Esperamos 2 segundos debido a las diferentes redirecciones hasta llegar de nuevo a la página de votación
-        WebDriverWait(self.driver, 300).until(expected_conditions.text_to_be_present_in_element((By.CSS_SELECTOR, "h2"), "Prueba votación"))
-        #assert self.driver.find_element(By.CSS_SELECTOR, "h2").text == "Prueba votación"
+        time.sleep(4)
+        #WebDriverWait(self.driver, 300).until(expected_conditions.text_to_be_present_in_element((By.CSS_SELECTOR, "h2"), "Prueba votación"))
+        assert self.driver.find_element(By.CSS_SELECTOR, "h2").text == "Prueba votación"
         
         self.driver.find_element(By.LINK_TEXT, "logout GitHub").click()
 
