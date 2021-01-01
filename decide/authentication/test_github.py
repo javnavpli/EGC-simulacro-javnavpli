@@ -121,20 +121,7 @@ class Github(StaticLiveServerTestCase):
         assert self.driver.find_element(By.ID, "__BVID__16__BV_label_").text == "Username"
         self.driver.find_element(By.ID, "__BVID__18__BV_label_").click()
         assert self.driver.find_element(By.ID, "__BVID__18__BV_label_").text == "Password"
-        #Si le damos a iniciar sesión mediante github de nuevo iniciará sesión con la cuenta que este logeada en la página github, a no ser que cerremos sesión en esta
-        self.driver.find_element(By.LINK_TEXT, "Iniciar sesión con Github").click()
-        assert self.driver.find_element(By.CSS_SELECTOR, ".voting > h1").text == f"{self.v.pk} - Prueba votación"
-        self.driver.find_element(By.LINK_TEXT, "logout GitHub").click()
-        #Si queremos iniciar sesión con una cuenta de github diferente, cerramos sesión en la página de github y al darle de nuevo a iniciar sesión con github, 
-        #nos pedirá las credenciales de una nueva cuenta.
-        self.driver.get("https://github.com/logout")
-        self.driver.set_window_size(1386, 752)
-        self.driver.find_element(By.CSS_SELECTOR, ".btn").click()
-        #Al dar al enlace de iniciar sesión mediante Github si hemos cerrado sesión, debe aparecer de nuevo la página login ofrecida por este servicio
-        self.driver.get(f'{self.live_server_url}/booth/{self.v.pk}')
-        self.driver.find_element(By.LINK_TEXT, "Iniciar sesión con Github").click()
-        self.driver.find_element(By.CSS_SELECTOR, "p:nth-child(2)").click()
-        assert self.driver.find_element(By.CSS_SELECTOR, "strong:nth-child(3)").text == "AuthenticationApp"
+        
     
         
 
