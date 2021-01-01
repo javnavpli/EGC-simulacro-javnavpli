@@ -18,7 +18,6 @@ from django.urls import reverse
 
 from .serializers import EmailOTPCodeSerializer, UserSerializer
 
-from django.core.mail import BadHeaderError
 from .email import send_mail_with_token
 import pyotp
 
