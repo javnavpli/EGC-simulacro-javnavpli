@@ -1,11 +1,10 @@
 from rest_framework import parsers, renderers
 from authentication.models import EmailOTPCode
-from django.http.response import Http404
 from rest_framework.response import Response
 from rest_framework.status import (
         HTTP_200_OK, HTTP_201_CREATED,
         HTTP_400_BAD_REQUEST,
-        HTTP_401_UNAUTHORIZED, HTTP_404_NOT_FOUND, HTTP_500_INTERNAL_SERVER_ERROR
+        HTTP_401_UNAUTHORIZED, HTTP_500_INTERNAL_SERVER_ERROR
 )
 from  smtplib import SMTPException
 from rest_framework.views import APIView

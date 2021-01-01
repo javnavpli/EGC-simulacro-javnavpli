@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.db import models
 
-from django.db.models.fields import CharField, EmailField, URLField, DateTimeField
+from django.db.models.fields import CharField, URLField, DateTimeField
 
 # Create your models here.
 class EmailOTPCode(models.Model):

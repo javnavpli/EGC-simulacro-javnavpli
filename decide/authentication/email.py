@@ -1,6 +1,5 @@
-from django.core.mail import EmailMultiAlternatives, BadHeaderError
+from django.core.mail import EmailMultiAlternatives
 from django.template.loader import get_template
-from django.template import Context
 
 def send_mail_with_token(to_email, link):
     subject = 'Decide - Correo para autenticación'

@@ -140,7 +140,6 @@ class AuthTestCase(APITestCase):
         data = {'email': 'voter1@gmail.com', 'callback': 'http://domain.es/callback'}
         response = self.client.post('/authentication/email-generate-token/', data, format='json')
         self.assertEqual(response.status_code, 200)
-        token = response.json()
 
         self.assertEqual(EmailOTPCode.objects.filter(user__username='voter1').count(), 1)
         self.assertEqual(len(mail.outbox), 1)
@@ -149,7 +148,6 @@ class AuthTestCase(APITestCase):
         data = {'email': 'voter1@gmail.com', 'callback': 'http://domain.es/callback'}
         response = self.client.post('/authentication/email-generate-token/', data, format='json')
         self.assertEqual(response.status_code, 200)
-        token = response.json()
 
         self.assertEqual(EmailOTPCode.objects.filter(user__username='voter1').count(), 1)
         self.assertEqual(len(mail.outbox), 1)
