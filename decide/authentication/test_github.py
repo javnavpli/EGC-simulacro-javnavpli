@@ -89,6 +89,7 @@ class Github(StaticLiveServerTestCase):
         #self.driver.switch_to.window(self.vars["root"])
         #WebDriverWait(self.driver, 300).until(expected_conditions.text_to_be_present_in_element((By.CSS_SELECTOR, "h2"), "Prueba votación"))
         #assert self.driver.find_element(By.CSS_SELECTOR, "h2").text == "Prueba votación"
+        time.sleep(10)
         self.driver.get(f'{self.live_server_url}/authentication/github-redirect?next={self.v.pk}')
         time.sleep(10)
         self.assertEqual(self.driver.current_url, f'{self.live_server_url}/booth/{self.v.pk}/')
