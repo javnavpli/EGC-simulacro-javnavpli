@@ -76,11 +76,11 @@ class Github(StaticLiveServerTestCase):
         self.driver.find_element(By.ID, "password").send_keys("pruebadecide11")
         self.driver.find_element(By.NAME, "commit").click()
         #Esperamos 2 segundos debido a las diferentes redirecciones hasta llegar de nuevo a la página de votación
-        time.sleep(4)
+        time.sleep(5)
         #WebDriverWait(self.driver, 300).until(expected_conditions.text_to_be_present_in_element((By.CSS_SELECTOR, "h2"), "Prueba votación"))
-        assert self.driver.find_element(By.CSS_SELECTOR, "h2").text == "Prueba votación"
+        #assert self.driver.find_element(By.CSS_SELECTOR, "h2").text == "Prueba votación"
+        self.assertEqual(self.driver.current_url, f'{self.live_server_url}/booth/{self.v.pk}/')
         
-        self.driver.find_element(By.LINK_TEXT, "logout GitHub").click()
 
     #Usuario introduce una contraseña errónea en la página login ofrecida por github
     
