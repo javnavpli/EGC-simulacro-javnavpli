@@ -20,10 +20,7 @@ from .serializers import EmailOTPCodeSerializer, UserSerializer
 
 from .email import send_mail_with_token
 import pyotp
-from django import forms
-from .serializers import UserSerializer
 from django.shortcuts import render, redirect
-from django.views.generic import TemplateView
 from django.contrib.auth import login
 
 

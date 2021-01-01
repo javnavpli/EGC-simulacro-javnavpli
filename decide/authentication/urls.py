@@ -1,9 +1,8 @@
-from django.urls import include, path
+from django.urls import path
 from rest_framework.authtoken.views import obtain_auth_token
-from .views import GetUserView, LogoutView, registro_usuario, RegisterView, inicio
 from django.contrib.auth.decorators import login_required
 
-from .views import GetUserView, LogoutView, RegisterView, EmailGenerateTokenView, EmailConfirmTokenView
+from .views import GetUserView, LogoutView, RegisterView, EmailGenerateTokenView, EmailConfirmTokenView, registro_usuario, inicio
 
 
 urlpatterns = [
