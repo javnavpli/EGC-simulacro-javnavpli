@@ -59,7 +59,12 @@ class Github(StaticLiveServerTestCase):
         self.base.tearDown()
         self.v.delete()
        
-    
+    def wait_for_window(self, timeout = 2):
+        time.sleep(round(timeout / 1000))
+        wh_now = self.driver.window_handles
+        wh_then = self.vars["window_handles"]
+        if len(wh_now) > len(wh_then):
+            return set(wh_now).difference(set(wh_then)).pop()
 
     #Usuario se autentica correctamente mediante github y llega a la página de la votación creada
     def test_login_correcto_github(self):
@@ -67,7 +72,12 @@ class Github(StaticLiveServerTestCase):
         self.driver.get(f'{self.live_server_url}/booth/{self.v.pk}')
         assert self.driver.find_element(By.CSS_SELECTOR, ".voting > h1").text == f"{self.v.pk} - Prueba votación"
         #Inicio sesión con github
+       # self.vars["window_handles"] = self.driver.window_handles
         self.driver.find_element(By.LINK_TEXT, "Iniciar sesión con Github").click()
+        #self.vars["win2433"] = self.wait_for_window(2000)
+        #self.vars["root"] = self.driver.current_window_handle
+        #self.driver.switch_to.window(self.vars["win2433"])
+        #self.driver.find_element(By.ID, "id_desc").click()
         self.driver.find_element(By.CSS_SELECTOR, "p:nth-child(2)").click()
         assert self.driver.find_element(By.CSS_SELECTOR, "strong:nth-child(3)").text == "AuthenticationApp"
         self.driver.find_element(By.ID, "login_field").click()
@@ -76,9 +86,11 @@ class Github(StaticLiveServerTestCase):
         self.driver.find_element(By.ID, "password").send_keys("pruebadecide11")
         self.driver.find_element(By.NAME, "commit").click()
         #Esperamos 2 segundos debido a las diferentes redirecciones hasta llegar de nuevo a la página de votación
-        time.sleep(5)
+        #self.driver.switch_to.window(self.vars["root"])
         #WebDriverWait(self.driver, 300).until(expected_conditions.text_to_be_present_in_element((By.CSS_SELECTOR, "h2"), "Prueba votación"))
         #assert self.driver.find_element(By.CSS_SELECTOR, "h2").text == "Prueba votación"
+        self.driver.get(self.driver.current_url)
+        time.sleep(5)
         self.assertEqual(self.driver.current_url, f'{self.live_server_url}/booth/{self.v.pk}/')
         
 
