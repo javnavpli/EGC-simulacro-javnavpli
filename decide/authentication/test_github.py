@@ -10,6 +10,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.support import expected_conditions
 from django.contrib.auth.models import User
 from base.tests import BaseTestCase
 import itertools
@@ -75,10 +76,8 @@ class Github(StaticLiveServerTestCase):
         self.driver.find_element(By.ID, "password").send_keys("pruebadecide11")
         self.driver.find_element(By.NAME, "commit").click()
         #Esperamos 4 segundos debido a las diferentes redirecciones hasta llegar de nuevo a la página de votación
-        time.sleep(3)
-        assert self.driver.find_element(By.CSS_SELECTOR, ".btn").text == "Vote"
+        WebDriverWait(self.driver, 30000).until(expected_conditions.text_to_be_present_in_element((By.CSS_SELECTOR, ".btn"), "Vote"))
     
-        
 
     #Usuario introduce una contraseña errónea en la página login ofrecida por github
     
@@ -113,9 +112,8 @@ class Github(StaticLiveServerTestCase):
         self.driver.find_element(By.ID, "password").send_keys("pruebadecide11")
         self.driver.find_element(By.NAME, "commit").click()
         #Esperamos 4 segundos debido a las diferentes redirecciones hasta llegar de nuevo a la página de votación
-        time.sleep(4)
         self.driver.set_window_size(1386, 752)
-        assert self.driver.find_element(By.CSS_SELECTOR, ".voting > h1").text == f"{self.v.pk} - Prueba votación"
+        WebDriverWait(self.driver, 30000).until(expected_conditions.text_to_be_present_in_element((By.CSS_SELECTOR, ".voting > h1"), f"{self.v.pk} - Prueba votación"))
         #Hacemos click en el botón de logout para Github
         self.driver.find_element(By.LINK_TEXT, "logout GitHub").click()
         #Comprobamos que hemos vuelto a la página login de la aplicación
