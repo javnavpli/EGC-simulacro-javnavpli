@@ -18,26 +18,24 @@ from voting.models import Voting, Question, QuestionOption, QuestionOrder
 from django.conf import settings
 from mixnet.models import Auth
 from django.utils import timezone
-from census.models import Census
+
+def create_voting(l):
+    q = Question(desc='Prueba votación')
+    q.save()
+    for i in range(2):
+        opt = QuestionOption(question=q, option='Opción {}'.format(i+1))
+        opt.save()
+    v = Voting(name='Prueba votación', question=q, link="prueba"+str(l))
+    v.save()
+
+    a, _ = Auth.objects.get_or_create(url=settings.BASEURL,defaults={'me': True, 'name': 'test auth'})
+    a.save()
+    v.auths.add(a)
+    v.create_pubkey()
+    v.start_date = timezone.now()
+    v.save()
 
 class Github(StaticLiveServerTestCase):
-    
-    def create_voting(self,l):
-        q = Question(desc='Prueba votación')
-        q.save()
-        for i in range(2):
-            opt = QuestionOption(question=q, option='Opción {}'.format(i+1))
-            opt.save()
-        v = Voting(name='Prueba votación', question=q, link="prueba"+str(l))
-        v.save()
-
-        a, _ = Auth.objects.get_or_create(url=settings.BASEURL,
-                                          defaults={'me': True, 'name': 'test auth'})
-        a.save()
-        v.auths.add(a)
-        v.create_pubkey()
-        v.start_date = timezone.now()
-        v.save()
 
     def setUp(self):
 
@@ -63,7 +61,7 @@ class Github(StaticLiveServerTestCase):
     #Usuario se autentica correctamente mediante github y llega a la página de la votación creada
     def test_login_correcto_github(self):
         #Creación de la votación para la prueba
-        self.create_voting(1)
+        create_voting(1)
         #Redirección a la votación creada
         self.driver.get(f'{self.live_server_url}/booth/1')
         assert self.driver.find_element(By.CSS_SELECTOR, ".voting > h1").text == "1 - Prueba votación"
@@ -86,7 +84,7 @@ class Github(StaticLiveServerTestCase):
     
     def test_login_incorrecto_github(self):
         #Creación de la votación para la prueba
-        self.create_voting(2)
+        create_voting(2)
         #Redirección a la votación creada
         self.driver.get(f'{self.live_server_url}/booth/2')
         assert self.driver.find_element(By.CSS_SELECTOR, ".voting > h1").text == "2 - Prueba votación"
@@ -105,7 +103,7 @@ class Github(StaticLiveServerTestCase):
     #El usuario se desloguea correctamente, siendo redireccionado a la página de inicio, pidiendole las credenciales de nuevo para entrar a la votación deseada
     def test_logout(self):
         #Creación de la votación para la prueba
-        self.create_voting(3)
+        create_voting(3)
         #Redirección a la votación creada
         self.driver.get(f'{self.live_server_url}/booth/3')
         assert self.driver.find_element(By.CSS_SELECTOR, ".voting > h1").text == "3 - Prueba votación"
