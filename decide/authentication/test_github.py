@@ -24,19 +24,20 @@ from django.utils import timezone
 class Github(StaticLiveServerTestCase):
 
     def create_voting(self):
-        q = Question(desc='Prueba votación')
-        q.save()
+        self.q = Question(desc='Prueba votación')
+        self.q.save()
         for i in range(2):
-            opt = QuestionOption(question=q, option='Opción {}'.format(i+1))
+            opt = QuestionOption(question=self.q, option='Opción {}'.format(i+1))
             opt.save()
-        v = Voting(name='Prueba votación', question=q, link="prueba")
-        v.save()
-        a, _ = Auth.objects.get_or_create(url=settings.BASEURL,defaults={'me': True, 'name': 'test auth'})
-        a.save()
-        v.auths.add(a)
-        v.create_pubkey()
-        v.start_date = timezone.now()
-        v.save()
+        self.v= Voting(name='Prueba votación', question=self.q, link="prueba")
+        self.v.save()
+        self.a, _ = Auth.objects.get_or_create(url=settings.BASEURL,defaults={'me': True, 'name': 'test auth'})
+        self.a.save()
+        self.v.auths.add(self.a)
+        self.v.create_pubkey()
+        self.v.start_date = timezone.now()
+        self.v.save()
+        
 
     def setUp(self):
 
@@ -55,13 +56,15 @@ class Github(StaticLiveServerTestCase):
         super().tearDown()
         self.driver.quit()
         self.base.tearDown()
+        self.v.delete()
+       
     
 
     #Usuario se autentica correctamente mediante github y llega a la página de la votación creada
     def test_login_correcto_github(self):
         #Redirección a la votación creada
-        self.driver.get(f'{self.live_server_url}/booth/1')
-        assert self.driver.find_element(By.CSS_SELECTOR, ".voting > h1").text == "1 - Prueba votación"
+        self.driver.get(f'{self.live_server_url}/booth/{self.v.pk}')
+        assert self.driver.find_element(By.CSS_SELECTOR, ".voting > h1").text == f"{self.v.pk} - Prueba votación"
         #Inicio sesión con github
         self.driver.find_element(By.LINK_TEXT, "Iniciar sesión con Github").click()
         self.driver.find_element(By.CSS_SELECTOR, "p:nth-child(2)").click()
@@ -72,7 +75,7 @@ class Github(StaticLiveServerTestCase):
         self.driver.find_element(By.ID, "password").send_keys("pruebadecide11")
         self.driver.find_element(By.NAME, "commit").click()
         #Esperamos 4 segundos debido a las diferentes redirecciones hasta llegar de nuevo a la página de votación
-        time.sleep(4)
+        time.sleep(3)
         assert self.driver.find_element(By.CSS_SELECTOR, ".btn").text == "Vote"
     
         
@@ -81,8 +84,8 @@ class Github(StaticLiveServerTestCase):
     
     def test_login_incorrecto_github(self):
         #Redirección a la votación creada
-        self.driver.get(f'{self.live_server_url}/booth/2')
-        assert self.driver.find_element(By.CSS_SELECTOR, ".voting > h1").text == "2 - Prueba votación"
+        self.driver.get(f'{self.live_server_url}/booth/{self.v.pk}')
+        assert self.driver.find_element(By.CSS_SELECTOR, ".voting > h1").text == f"{self.v.pk} - Prueba votación"
         #Inicio sesión con github
         self.driver.find_element(By.LINK_TEXT, "Iniciar sesión con Github").click()
         self.driver.find_element(By.CSS_SELECTOR, "p:nth-child(2)").click()
@@ -98,8 +101,8 @@ class Github(StaticLiveServerTestCase):
     #El usuario se desloguea correctamente, siendo redireccionado a la página de inicio, pidiendole las credenciales de nuevo para entrar a la votación deseada
     def test_logout(self):
         #Redirección a la votación creada
-        self.driver.get(f'{self.live_server_url}/booth/3')
-        assert self.driver.find_element(By.CSS_SELECTOR, ".voting > h1").text == "3 - Prueba votación"
+        self.driver.get(f'{self.live_server_url}/booth/{self.v.pk}')
+        assert self.driver.find_element(By.CSS_SELECTOR, ".voting > h1").text == f"{self.v.pk} - Prueba votación"
         #Inicio sesión con github
         self.driver.find_element(By.LINK_TEXT, "Iniciar sesión con Github").click()
         self.driver.find_element(By.CSS_SELECTOR, "p:nth-child(2)").click()
@@ -112,7 +115,7 @@ class Github(StaticLiveServerTestCase):
         #Esperamos 4 segundos debido a las diferentes redirecciones hasta llegar de nuevo a la página de votación
         time.sleep(4)
         self.driver.set_window_size(1386, 752)
-        assert self.driver.find_element(By.CSS_SELECTOR, ".voting > h1").text == "3 - Prueba votación"
+        assert self.driver.find_element(By.CSS_SELECTOR, ".voting > h1").text == f"{self.v.pk} - Prueba votación"
         #Hacemos click en el botón de logout para Github
         self.driver.find_element(By.LINK_TEXT, "logout GitHub").click()
         #Comprobamos que hemos vuelto a la página login de la aplicación
@@ -122,7 +125,7 @@ class Github(StaticLiveServerTestCase):
         assert self.driver.find_element(By.ID, "__BVID__18__BV_label_").text == "Password"
         #Si le damos a iniciar sesión mediante github de nuevo iniciará sesión con la cuenta que este logeada en la página github, a no ser que cerremos sesión en esta
         self.driver.find_element(By.LINK_TEXT, "Iniciar sesión con Github").click()
-        assert self.driver.find_element(By.CSS_SELECTOR, ".voting > h1").text == "3 - Prueba votación"
+        assert self.driver.find_element(By.CSS_SELECTOR, ".voting > h1").text == f"{self.v.pk} - Prueba votación"
         self.driver.find_element(By.LINK_TEXT, "logout GitHub").click()
         #Si queremos iniciar sesión con una cuenta de github diferente, cerramos sesión en la página de github y al darle de nuevo a iniciar sesión con github, 
         #nos pedirá las credenciales de una nueva cuenta.
@@ -130,7 +133,7 @@ class Github(StaticLiveServerTestCase):
         self.driver.set_window_size(1386, 752)
         self.driver.find_element(By.CSS_SELECTOR, ".btn").click()
         #Al dar al enlace de iniciar sesión mediante Github si hemos cerrado sesión, debe aparecer de nuevo la página login ofrecida por este servicio
-        self.driver.get(f'{self.live_server_url}/booth/3')
+        self.driver.get(f'{self.live_server_url}/booth/{self.v.pk}')
         self.driver.find_element(By.LINK_TEXT, "Iniciar sesión con Github").click()
         self.driver.find_element(By.CSS_SELECTOR, "p:nth-child(2)").click()
         assert self.driver.find_element(By.CSS_SELECTOR, "strong:nth-child(3)").text == "AuthenticationApp"
