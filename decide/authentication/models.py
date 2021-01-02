@@ -1,7 +1,21 @@
+from django.conf import settings
 from django.db import models
 from django.contrib.auth.models import User
 
+from django.db.models.fields import CharField, URLField, DateTimeField
+
 # Create your models here.
+class EmailOTPCode(models.Model):
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL, unique=True,
+        on_delete=models.CASCADE, verbose_name="User"
+    )
+    secret = CharField(max_length=32, verbose_name="Secret Key")
+    callback = URLField(verbose_name="Callback")
+    created = DateTimeField("Created", auto_now_add=True)
+
+    def __str__(self):
+        return self.secret
 
 #Extra: Atributos extras para el modelo User
 class Extra(models.Model):
@@ -12,3 +26,4 @@ class Extra(models.Model):
     
     def __str__(self):
         return self.phone
+

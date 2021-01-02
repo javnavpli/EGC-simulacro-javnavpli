@@ -165,6 +165,16 @@ LOGOUT_REDIRECT_URL = reverse_lazy('home')
 SOCIAL_AUTH_LOGIN_REDIRECT_URL = '/authentication/github-redirect'
 #SOCIAL_AUTH_GITHUB_OAUTH2_LOGOUT_URL= "'https://www.github.com/logout'"
 
+# Email server
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_USE_TLS = True
+EMAIL_PORT = 587
+EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
+
+
 TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
 
 # Static files (CSS, JavaScript, Images)

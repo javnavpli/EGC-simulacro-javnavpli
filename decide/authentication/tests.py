@@ -1,10 +1,18 @@
+from smtplib import SMTPException
+
+from django.core.mail.message import EmailMultiAlternatives
+from authentication.models import EmailOTPCode
 from django.test import TestCase
 from rest_framework.test import APIClient
 from rest_framework.test import APITestCase
+from unittest import mock
 
 from django.contrib.auth.models import User
 from rest_framework.authtoken.models import Token
+
+from django.core import mail
 from base.tests import BaseTestCase
+
 from base import mods
 
 from .forms import UserForm, ExtraForm
@@ -17,9 +25,10 @@ class AuthTestCase(APITestCase):
     def setUp(self):
         self.client = APIClient()
         mods.mock_query(self.client)
-        u = User(username='voter1')
-        u.set_password('123')
-        u.save()
+        self.u = User(username='voter1')
+        self.u.set_password('123')
+        self.u.email = 'voter1@gmail.com'
+        self.u.save()
 
         u2 = User(username='admin')
         u2.set_password('admin')
@@ -52,7 +61,7 @@ class AuthTestCase(APITestCase):
         self.assertEqual(response.status_code, 200)
 
         user = response.json()
-        self.assertEqual(user['id'], 1)
+        self.assertEqual(user['id'], self.u.pk)
         self.assertEqual(user['username'], 'voter1')
 
     def test_getuser_invented_token(self):
@@ -133,6 +142,95 @@ class AuthTestCase(APITestCase):
             ['token', 'user_pk']
         )
 
+    #Generación exitosa de un token por email
+    def test_generate_email_token(self):
+        data = {'email': 'voter1@gmail.com', 'callback': 'http://domain.es/callback'}
+        response = self.client.post('/authentication/email-generate-token/', data, format='json')
+        self.assertEqual(response.status_code, 200)
+
+        self.assertEqual(EmailOTPCode.objects.filter(user__username='voter1').count(), 1)
+        self.assertEqual(len(mail.outbox), 1)
+
+    #Comprobación de que el email se ha enviado correctamente
+    def test_generate_email_token_send_email(self):
+        data = {'email': 'voter1@gmail.com', 'callback': 'http://domain.es/callback'}
+        response = self.client.post('/authentication/email-generate-token/', data, format='json')
+        self.assertEqual(response.status_code, 200)
+
+        self.assertEqual(EmailOTPCode.objects.filter(user__username='voter1').count(), 1)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].subject, 'Decide - Correo para autenticación')
+        self.assertEqual(len(mail.outbox[0].to), 1)
+        self.assertEqual(mail.outbox[0].to[0], 'voter1@gmail.com')
+
+    #Comprobación de que solo puede haber un token funcional por usuario
+    def test_generate_email_token_twice(self):
+        data = {'email': 'voter1@gmail.com', 'callback': 'http://domain.es/callback'}
+        response = self.client.post('/authentication/email-generate-token/', data, format='json')
+        self.assertEqual(response.status_code, 200)
+
+        response = self.client.post('/authentication/email-generate-token/', data, format='json')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(EmailOTPCode.objects.filter(user__username='voter1').count(), 1)
+        self.assertEqual(len(mail.outbox), 2)
+
+    #El campo de usuario es obligatorio
+    def test_generate_email_token_empty_email(self):
+        data = {'email': '', 'callback': 'http://dominio.prueba/callback'}
+        response = self.client.post('/authentication/email-generate-token/', data, format='json')
+        self.assertEqual(response.status_code, 400)
+
+        self.assertEqual(EmailOTPCode.objects.filter(user__username='voter1').count(), 0)
+        self.assertEqual(len(mail.outbox), 0)
+
+    #El campo de callback es obligatorio
+    def test_generate_email_token_empty_callback(self):
+        data = {'email': 'voter1@gmail.com', 'callback': ''}
+        response = self.client.post('/authentication/email-generate-token/', data, format='json')
+        self.assertEqual(response.status_code, 400)
+
+        self.assertEqual(EmailOTPCode.objects.filter(user__username='voter1').count(), 0)
+        self.assertEqual(len(mail.outbox), 0)
+
+    #El campo de email debe existir para algún usuario
+    def test_generate_email_token_wrong_email(self):
+        data = {'email': 'no_email@gmail.com', 'callback': 'http://dominio.prueba/callback'}
+        response = self.client.post('/authentication/email-generate-token/', data, format='json')
+        self.assertEqual(response.status_code, 404)
+
+        self.assertEqual(EmailOTPCode.objects.filter(user__username='voter1').count(), 0)
+        self.assertEqual(len(mail.outbox), 0)
+    
+    #El campo de emmail debe sear adecuado
+    def test_generate_email_token_invalid_email(self):
+        data = {'email': 'no_email', 'callback': 'http://dominio.prueba/callback'}
+        response = self.client.post('/authentication/email-generate-token/', data, format='json')
+        self.assertEqual(response.status_code, 400)
+
+        self.assertEqual(EmailOTPCode.objects.filter(user__username='voter1').count(), 0)
+        self.assertEqual(len(mail.outbox), 0)
+
+    #El campo de callback debe tratarse de una URL válida
+    def test_generate_email_token_wrong_callback(self):
+        data = {'email': 'voter1@gmail.com', 'callback': 'no_es_url'}
+        response = self.client.post('/authentication/email-generate-token/', data, format='json')
+        self.assertEqual(response.status_code, 400)
+
+        self.assertEqual(EmailOTPCode.objects.filter(user__username='voter1').count(), 0)
+        self.assertEqual(len(mail.outbox), 0)
+
+    #Cuando el servidor de correo no funcione el servidor debe responder adecuadamente
+    def test_generate_email_token_mail_server_not_working(self):
+        data = {'email': 'voter1@gmail.com', 'callback': 'http://dominio.prueba/callback'}
+        
+        with mock.patch.object(EmailMultiAlternatives, 'send') as mock_method:
+            mock_method.side_effect = SMTPException()
+
+            response = self.client.post('/authentication/email-generate-token/', data, format='json')
+            self.assertEqual(response.status_code, 500)
+
+        self.assertEqual(EmailOTPCode.objects.filter(user__username='voter1').count(), 1)
+        self.assertEqual(len(mail.outbox), 0)
 
 class FormTestCase(TestCase):
 
