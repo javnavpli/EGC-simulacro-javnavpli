@@ -19,7 +19,7 @@ from voting.models import Voting, Question, QuestionOption, QuestionOrder
 from django.conf import settings
 from mixnet.models import Auth
 from django.utils import timezone
-
+import logging
 
 class Github(StaticLiveServerTestCase):
 
@@ -73,9 +73,9 @@ class Github(StaticLiveServerTestCase):
         self.driver.find_element(By.ID, "password").click()
         self.driver.find_element(By.ID, "password").send_keys("pruebadecide11")
         self.driver.find_element(By.NAME, "commit").click()
-        elements = self.driver.find_elements(By.CSS_SELECTOR, ".flash > .container-lg")
-        assert len(elements) == 0
-
+        logger = logging.getLogger("Texto prueba")
+        assert self.driver.find_element(By.CSS_SELECTOR, ".flash > .container-lg").text == "Incorrect username or password."
+        
 
     #Usuario introduce una contraseña incorrecta de su cuenta de Github
     def test_login_incorrect_password(self):
