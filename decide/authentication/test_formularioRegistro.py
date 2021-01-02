@@ -9,11 +9,17 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.action_chains import ActionChains
-
+from django.contrib.auth.models import User
 from base.tests import BaseTestCase
+import itertools
+import time
+from voting.models import Voting, Question, QuestionOption, QuestionOrder
+from django.conf import settings
+from mixnet.models import Auth
+from django.utils import timezone
+
 
 class TestFormularioRegistro(StaticLiveServerTestCase):
-
 
     def setUp(self):
         #Load base test functionality for decide
@@ -101,4 +107,9 @@ class TestFormularioRegistro(StaticLiveServerTestCase):
         self.driver.find_element(By.NAME, "password").send_keys("hola1234")
         self.driver.find_element(By.NAME, "password").send_keys(Keys.ENTER)
         assert self.driver.find_element(By.CSS_SELECTOR, "h1").text == "Inicio de sesión | Decide!"
-  
+
+
+
+        
+        
+

@@ -44,6 +44,8 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'rest_framework_swagger',
     'gateway',
+    'social_django',
+
     
 ]
 
@@ -57,6 +59,8 @@ REST_FRAMEWORK = {
 
 AUTHENTICATION_BACKENDS = [
     'base.backends.AuthBackend',
+    'social_core.backends.github.GithubOAuth2',
+    'django.contrib.auth.backends.ModelBackend',
 ]
 
 MODULES = [
@@ -81,6 +85,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'social_django.middleware.SocialAuthExceptionMiddleware',
+    
 ]
 
 ROOT_URLCONF = 'decide.urls'
@@ -96,6 +102,9 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'social_django.context_processors.backends',
+                'social_django.context_processors.login_redirect',
+                
             ],
         },
     },
@@ -153,6 +162,8 @@ USE_TZ = True
 
 LOGIN_REDIRECT_URL = reverse_lazy('inicio')
 LOGOUT_REDIRECT_URL = reverse_lazy('home')
+SOCIAL_AUTH_LOGIN_REDIRECT_URL = '/authentication/github-redirect'
+#SOCIAL_AUTH_GITHUB_OAUTH2_LOGOUT_URL= "'https://www.github.com/logout'"
 
 # Email server
 
@@ -171,7 +182,8 @@ TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
 
 STATIC_URL = '/static/'
 
-
+#SOCIAL_AUTH_CREATE_USERS = True
+#SOCIAL_AUTH_POSTGRES_JSONFIELD = True
 
 # number of bits for the key, all auths should use the same number of bits
 KEYBITS = 256
@@ -195,3 +207,10 @@ if os.path.exists("config.jsonnet"):
 
 
 INSTALLED_APPS = INSTALLED_APPS + MODULES
+
+SOCIAL_AUTH_GITHUB_KEY = '01be11c9729e4d6255c4'
+SOCIAL_AUTH_GITHUB_SECRET = '4a9fd81bb53d0e536abc1334c0c4ed4987ec753a'
+
+SOCIAL_AUTH_USER_FIELDS = ['username']
+
+
