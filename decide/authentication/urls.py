@@ -15,6 +15,6 @@ urlpatterns = [
     path('inicio/', login_required(inicio), name="inicio"),
     path('social-auth/', include('social_django.urls', namespace='social')),
     path('github-redirect',github_redirect),
-    path('logoutGithub/',logoutGitHub),
+    path('logoutGithub/',logoutGitHub)
 
 ]
