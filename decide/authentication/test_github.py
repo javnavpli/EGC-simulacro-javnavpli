@@ -58,25 +58,6 @@ class Github(StaticLiveServerTestCase):
         self.base.tearDown()
         self.v.delete()
 
-    #Usuario se autentica correctamente mediante github 
-    def test_login_correcto_github(self):
-        #Redirección a la votación creada
-        self.driver.get(f'{self.live_server_url}/booth/{self.v.pk}')
-        assert self.driver.find_element(By.CSS_SELECTOR, ".voting > h1").text == f"{self.v.pk} - Prueba votación"
-        #Inicio sesión con github
-        self.driver.find_element(By.LINK_TEXT, "Iniciar sesión con Github").click()
-        self.driver.find_element(By.CSS_SELECTOR, "p:nth-child(2)").click()
-        #Llegamos a la página ofrecida por la aplicación oauth 
-        assert self.driver.find_element(By.CSS_SELECTOR, "strong:nth-child(3)").text == "AuthenticationApp"
-        self.driver.find_element(By.ID, "login_field").click()
-        self.driver.find_element(By.ID, "login_field").send_keys("decideautenticacion")
-        self.driver.find_element(By.ID, "password").click()
-        self.driver.find_element(By.ID, "password").send_keys("pruebadecide11")
-        self.driver.find_element(By.NAME, "commit").click()
-        logger = logging.getLogger("Texto prueba")
-        assert self.driver.find_element(By.CSS_SELECTOR, ".flash > .container-lg").text == "Incorrect username or password."
-        
-
     #Usuario introduce una contraseña incorrecta de su cuenta de Github
     def test_login_incorrect_password(self):
         #Redirección a la votación creada
