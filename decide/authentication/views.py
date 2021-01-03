@@ -69,7 +69,20 @@ class GetUserView(APIView):
     def post(self, request):
         key = request.data.get('token', '')
         tk = get_object_or_404(Token, key=key)
-        return Response(UserSerializer(tk.user, many=False).data)
+        user = UserSerializer(tk.user, many=False)
+        
+        totp_code = request.data.get('totp_code', '')
+        extra = get_object_or_404(Extra, user=tk.user)
+        base32secret = getattr(extra, 'totp_code')
+
+        if base32secret:
+            if not totp_code:
+                return Response({}, status=HTTP_400_BAD_REQUEST)
+            current_totp = pyotp.TOTP(base32secret)
+            if not current_totp.verify(totp_code):
+                return Response({}, status=HTTP_400_BAD_REQUEST)
+        
+        return Response(user.data)
 
 
 class LogoutView(APIView):

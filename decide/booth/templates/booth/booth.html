@@ -56,6 +56,12 @@
                         v-model="form.password"
                         required />
                 </b-form-group>
+                <b-form-group label="{% trans "2FA Code (Optional)" %}" label-for="totp_code">
+                    <b-form-input
+                        id="totp_code"
+                        type="text"
+                        v-model="form.totp_code" />
+                </b-form-group>
                 <b-button type="submit" variant="primary">{% trans "Login" %}</b-button>
             </b-form>
 
@@ -124,7 +130,8 @@
                 user: null,
                 form: {
                     username: '',
-                    password: ''
+                    password: '',
+                    totp_code: ''
                 },
                 emailForm: {
                     email: '',
