@@ -9,6 +9,7 @@ from rest_framework.status import (
 from  smtplib import SMTPException
 from rest_framework.views import APIView
 from rest_framework.authtoken.models import Token
+from rest_framework.authtoken.serializers import AuthTokenSerializer
 from django.contrib.auth.models import User
 from django.db import IntegrityError
 from django.shortcuts import get_object_or_404
@@ -16,7 +17,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.views.generic import TemplateView
 from django.urls import reverse
 
-from .serializers import EmailOTPCodeSerializer, UserSerializer
+from .serializers import AuthTokenSecondFactorSerializer, EmailOTPCodeSerializer, UserSerializer
 
 from .email import send_mail_with_token
 import pyotp
@@ -46,8 +47,8 @@ def registro_usuario(request):
             phone = extra_form.cleaned_data["phone"]
             base32secret = extra_form.cleaned_data["base32secret"]
             user = User.objects.get(username=username)
-            Extra.objects.create(phone=phone, totp_code=base32secret, user=user)   
-            login(request, user) 
+            Extra.objects.create(phone=phone, totp_code=base32secret, user=user)
+            login(request, user)
             return redirect(to='inicio')
             
     formularios = {
@@ -70,20 +71,41 @@ class GetUserView(APIView):
         key = request.data.get('token', '')
         tk = get_object_or_404(Token, key=key)
         user = UserSerializer(tk.user, many=False)
-        
-        totp_code = request.data.get('totp_code', '')
-        extra = get_object_or_404(Extra, user=tk.user)
-        base32secret = getattr(extra, 'totp_code')
-
-        if base32secret:
-            if not totp_code:
-                return Response({}, status=HTTP_400_BAD_REQUEST)
-            current_totp = pyotp.TOTP(base32secret)
-            if not current_totp.verify(totp_code):
-                return Response({}, status=HTTP_400_BAD_REQUEST)
-        
         return Response(user.data)
 
+class ObtainAuthTokenSecondFactor(APIView):
+    throttle_classes = ()
+    permission_classes = ()
+    parser_classes = (parsers.FormParser, parsers.MultiPartParser, parsers.JSONParser,)
+    renderer_classes = (renderers.JSONRenderer,)
+    serializer_class = AuthTokenSecondFactorSerializer
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data,
+                                           context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data['user']
+        
+        totp_code = serializer.validated_data['totp_code']
+        
+        try:
+            extra = Extra.objects.get(user=user)
+        except Extra.DoesNotExist:
+            extra = None
+
+        if extra:
+            base32secret = extra.totp_code
+
+            if base32secret:
+                if not totp_code:
+                    return Response({}, status=HTTP_400_BAD_REQUEST)
+                current_totp = pyotp.TOTP(base32secret)
+                if not current_totp.verify(totp_code):
+                    return Response({}, status=HTTP_401_UNAUTHORIZED)
+
+        token, created = Token.objects.get_or_create(user=user)
+
+        return Response({'token': token.key})
 
 class LogoutView(APIView):
     def post(self, request):

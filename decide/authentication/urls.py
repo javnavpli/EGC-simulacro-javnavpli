@@ -2,11 +2,11 @@ from django.urls import path
 from rest_framework.authtoken.views import obtain_auth_token
 from django.contrib.auth.decorators import login_required
 
-from .views import GetUserView, LogoutView, RegisterView, EmailGenerateTokenView, EmailConfirmTokenView, registro_usuario, inicio
+from .views import GetUserView, LogoutView, RegisterView, EmailGenerateTokenView, EmailConfirmTokenView, registro_usuario, inicio, ObtainAuthTokenSecondFactor
 
 
 urlpatterns = [
-    path('login/', obtain_auth_token),
+    path('login/', ObtainAuthTokenSecondFactor.as_view()), # obtain_auth_token),
     path('logout/', LogoutView.as_view()),
     path('getuser/', GetUserView.as_view()),
     path('register/', RegisterView.as_view()),
