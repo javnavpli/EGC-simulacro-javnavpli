@@ -1,5 +1,6 @@
 from base import mods
 from django.contrib.auth.models import User
+from voting.models import Voting, Question, QuestionOption
 from django.core import mail
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 
@@ -9,6 +10,7 @@ from selenium.webdriver.common.keys import Keys
 
 from base.tests import BaseTestCase
 from freezegun import freeze_time
+import pyotp
 
 import re
 
@@ -83,6 +85,82 @@ class EmailAuthRedirectCase(StaticLiveServerTestCase):
     def tearDown(self):
         super().tearDown()
         self.driver.quit()
+
+        self.base.tearDown()
+
+    @freeze_time('2020-10-10 03:15:00')
+    def test_confirmEmailTokenAfterStart(self):
+        self.driver.get(f'{self.live_server_url}/{self.link}')
+
+        self.assertEqual(self.driver.current_url, 'http://dominio.prueba/callback')
+
+    @freeze_time('2020-10-10 03:59:00')
+    def test_confirmEmailTokenBeforeEnd(self):
+        self.driver.get(f'{self.live_server_url}/{self.link}')
+
+        self.assertEqual(self.driver.current_url, 'http://dominio.prueba/callback')
+
+    @freeze_time('2020-10-10 04:01:00')
+    def test_confirmEmailTokenAfterEnd(self):
+        self.driver.get(f'{self.live_server_url}/{self.link}')
+        
+        self.assertEqual(self.driver.find_element(By.XPATH, "//div/h1").text, "Error")
+        self.assertEqual(self.driver.find_element(By.XPATH, "//div/p").text, "Token is wrong.")
+
+    @freeze_time('2020-10-10 03:30:00')
+    def test_confirmEmailTokenInvalidUserId(self):
+        self.driver.get(f'{self.live_server_url}/authentication/email-confirm-token/11111/222222/')
+
+        self.assertEqual(self.driver.find_element(By.XPATH, "//div/h1").text, "Error")
+        self.assertEqual(self.driver.find_element(By.XPATH, "//div/p").text, "Token is wrong.")
+
+    @freeze_time('2020-10-10 03:30:00')
+    def test_confirmEmailTokenInvalidToken(self):
+        self.driver.get(f'{self.live_server_url}/authentication/email-confirm-token/{self.user_with_email.pk}/111111/')
+
+        self.assertEqual(self.driver.find_element(By.XPATH, "//div/h1").text, "Error")
+        self.assertEqual(self.driver.find_element(By.XPATH, "//div/p").text, "Token is wrong.")
+
+class Auth2faRedirectCase(StaticLiveServerTestCase):
+    
+    def prepare2faToken(self):
+        self.user_with_2fa = User(username='userWith2fa')
+        self.user_with_2fa.set_password('qwerty')
+        self.user_with_2fa.save()
+
+        self.extra = Extra(phone='020304050')
+        self.extra.totp_code = 'S3K3TPI5MYA2M67V'
+        self.extra.save()
+        totp_code = pyotp.TOTP(self.extra.totp_code).now()
+
+        data = {'username': self.user_with_2fa.username, 'password': self.user_with_2fa.password, 'totp_code': totp_code}
+        response = mods.post('authentication/login', json=data, response=True)
+        self.assertEqual(response.status_code, 200)
+
+    def setUp(self):
+        q=Question(desc="Description")
+        q.save()
+        opt= QuestionOption(question=q, option="option")
+        opt.save()
+        self.v=Voting(name="votacion", question=q)
+        self.v.save()
+
+        self.base = BaseTestCase()
+        self.base.setUp()
+
+        self.prepare2faToken()
+
+        options = webdriver.ChromeOptions()
+        options.headless = True
+        self.driver = webdriver.Chrome(options=options)
+
+
+        super().setUp()
+
+    def tearDown(self):
+        super().tearDown()
+        self.driver.quit()
+        self.v=None
 
         self.base.tearDown()
 
